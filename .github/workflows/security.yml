@@ -59,7 +59,7 @@ jobs:
           pip install pip-audit
           pip-audit -r anket_sistemi/requirements.txt
       - name: Run OSV Scanner
-        uses: google/osv-scanner-action/scan@v1
+        uses: google/osv-scanner-action@v1
         with:
           scan-args: ./anket_sistemi
 
@@ -67,11 +67,14 @@ jobs:
   zap_scan:
     name: DAST Baseline Scan (OWASP ZAP)
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
     steps:
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          target: 'https://github.com/${{ github.repository }}' # Örnek hedef, gerçek URL ile güncellenebilir
+          target: 'https://github.com/${{ github.repository }}'
           rules_file_name: '.zap/rules.tsv'
           fail_action: false
