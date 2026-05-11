@@ -13,6 +13,7 @@ anket_sistemi_restorepoint_*/
 Thumbs.db
 
 # Anket sistemi içindeki gereksizler
+anket_sistemi/guncelle.bat
 anket_sistemi/anket.db
 anket_sistemi/.env
 anket_sistemi/server_error.log
