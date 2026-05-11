@@ -12,6 +12,13 @@ anket_sistemi_restorepoint_*/
 .DS_Store
 Thumbs.db
 
+# Yerel güvenlik ve rapor klasörleri
+security/
+reports/
+logs/
+scripts/
+scratch/
+
 # Anket sistemi içindeki gereksizler
 anket_sistemi/guncelle.bat
 anket_sistemi/anket.db
