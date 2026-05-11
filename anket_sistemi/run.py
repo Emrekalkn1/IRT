@@ -40,5 +40,6 @@ if __name__ == "__main__":
     # Tarayıcıyı arka planda aç
     threading.Thread(target=tarayici_ac, daemon=True).start()
 
-    debug_mode = os.getenv("DEBUG", "1") == "1"
-    app.run(debug=debug_mode, host="0.0.0.0", port=5000, use_reloader=debug_mode)
+    debug_mode = os.getenv("DEBUG", "0") == "1"
+    host_ip = os.getenv("HOST", "127.0.0.1")
+    app.run(debug=debug_mode, host=host_ip, port=5000, use_reloader=debug_mode)

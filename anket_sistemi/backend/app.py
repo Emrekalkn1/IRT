@@ -238,7 +238,7 @@ def login_sayfasi():
                 make_response(render_template("login.html", hata="Cok fazla basarisiz deneme. Lutfen 15 dakika sonra tekrar deneyin."))
             )
 
-        logging.info(f"[AUTH] Attempt: user={username}, detected_ip={ip}")
+        logging.info(f"[AUTH] Attempt: detected_ip={'masked' if ip else 'none'}")
 
         user = db.kullanici_dogrula(username)
         success = user and check_password_hash(user["password_hash"], password)
