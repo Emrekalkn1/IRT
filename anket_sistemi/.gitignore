@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+
+# Database
+veri/
+*.db
+
+# Output / Generated Files
+output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives
+*.rar
+*.zip
+
+# Logs
+*.log
+server_error.log
+
+# Scratch / Temp
+backend/scratch/

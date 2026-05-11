@@ -1,0 +1,49 @@
+<svg width="588" height="185" viewBox="0 0 588 185" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Sayiyoo logo</title>
+  <desc id="desc">Animated Sayiyoo wordmark with a yellow bouncing dot and eyeglass-shaped oo.</desc>
+  <style>
+    .wordmark {
+      fill: #F3EEE5;
+      font-family: "Arial Black", Inter, Arial, sans-serif;
+      font-size: 100px;
+      font-weight: 900;
+      letter-spacing: -3px;
+    }
+
+    .ball {
+      fill: #F0B12A;
+    }
+
+    .shadow {
+      fill: #6D5420;
+      opacity: 0.28;
+    }
+
+    .glasses {
+      stroke: #F3EEE5;
+      stroke-width: 9;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
+
+  <ellipse class="shadow" cx="179" cy="80" rx="8" ry="3">
+    <animate attributeName="rx" values="6;18;6" dur="0.92s" repeatCount="indefinite" />
+    <animate attributeName="ry" values="3;5;3" dur="0.92s" repeatCount="indefinite" />
+    <animate attributeName="opacity" values="0.18;0.36;0.18" dur="0.92s" repeatCount="indefinite" />
+  </ellipse>
+
+  <circle class="ball" cx="179" cy="28" r="14">
+    <animate attributeName="cy" values="20;76;20" dur="0.92s" repeatCount="indefinite" calcMode="spline" keySplines="0.42 0 1 1;0 0 0.58 1" />
+    <animate attributeName="r" values="14;13;14" dur="0.92s" repeatCount="indefinite" />
+  </circle>
+
+  <text class="wordmark" x="14" y="155">sayiy</text>
+
+  <circle class="glasses" cx="460" cy="110" r="37"/>
+  <circle class="glasses" cx="548" cy="110" r="37"/>
+  <line class="glasses" x1="423" y1="101" x2="389" y2="94"/>
+  <line class="glasses" x1="497" y1="97" x2="511" y2="97"/>
+  <line class="glasses" x1="585" y1="101" x2="619" y2="94"/>
+</svg>

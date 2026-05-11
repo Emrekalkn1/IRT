@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Marka Algi Arastirmasi Anketi">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ proje.ad if proje else 'Anket' }} - Marka Algi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Çift tıklama zoom engelleme */
+        * { touch-action: manipulation; }
+        button, a, .btn-cevap, .btn-basla { touch-action: manipulation; -ms-touch-action: manipulation; }
+        /* Cookie Banner */
+        .cookie-banner {
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            padding: 20px; border-radius: 16px; border: 1px solid rgba(99,102,241,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: space-between;
+            z-index: 10000; animation: slideUp 0.5s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .cookie-text { font-size: 0.85rem; color: #475569; line-height: 1.5; margin-right: 20px; }
+        .cookie-btn { background: #6366f1; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+    {% if hata %}
+    <!-- HATA DURUMU -->
+    <div class="screen screen-hata active">
+        <div class="hata-kart">
+            <div style="font-size:3rem; margin-bottom:1rem;">⚠️</div>
+            <h2>{{ hata }}</h2>
+            <p style="margin-top:0.5rem; color:#94a3b8;">Bir sorun varsa yoneticinize basvurun.</p>
+        </div>
+    </div>
+
+    {% elif tamamlandi %}
+    <!-- TEKRAR DOLDURULAMAZ -->
+    <div class="screen active" style="background:linear-gradient(135deg,#eef2ff,#c7d2fe);">
+        <div class="tamamlandi-kart">
+            <div class="tamamlandi-ikon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <h2>Anket Zaten Tamamlandi</h2>
+            <p>Bu anketi daha once doldurdunuz. Katiliminiz icin tesekkurler!</p>
+            <div class="tamamlandi-dekor">✨</div>
+        </div>
+    </div>
+
+    {% else %}
+
+    <!-- EKRAN 1: BILGILENDIRME / KARSILAMA -->
+    <div class="screen screen-karsilama active" id="screenKarsilama">
+        <div class="karsilama-bg-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+        <div class="karsilama-icerik">
+            <div class="karsilama-badge">📊 Bilimsel Araştırma Platformu</div>
+
+            {% if proje.katilimci_bilgilendirme %}
+            <div class="bilgilendirme-kutu">
+                <div class="bilgilendirme-ikon">ℹ️</div>
+                <p>{{ proje.katilimci_bilgilendirme }}</p>
+            </div>
+            {% endif %}
+
+            <p class="karsilama-aciklama">
+                Size çeşitli markalar ve ifadeler gösterilecek.<br>
+                Her ifade için <strong>EVET</strong> veya <strong>HAYIR</strong> butonuna tıklayın.<br>
+                Mümkün olduğunca <strong>hızlı</strong> ve içgüdüsel cevap verin.
+            </p>
+            
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 1rem; line-height: 1.4;">
+                * Bu araştırma kapsamında IP adresiniz, cihaz tipiniz ve tarayıcı bilgileriniz kalite kontrol amacıyla kaydedilecektir.
+            </div>
+
+            <button class="btn-basla" id="btnBasla">
+                <span>Teste Başla</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- EKRAN 1.5: PROFIL / DEMOGRAFIK -->
+    <div class="screen screen-profil" id="screenProfil">
+        <div class="profil-kart">
+            <h2>Kısa Bir Tanıma Formu</h2>
+            <p>Sonuçları analiz edebilmemiz için lütfen aşağıdaki bilgileri doldurun.</p>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Ad Soyad</label>
+                    <input type="text" id="profAdSoyad" class="form-input" placeholder="Adınız Soyadınız">
+                </div>
+                <div class="form-group">
+                    <label>Yaş</label>
+                    <select id="profYas" class="form-input">
+                        <option value="">Seçiniz</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cinsiyet</label>
+                    <select id="profCinsiyet" class="form-input">
+                        <option value="">Seçiniz</option>
+                        <option value="Kadın">Kadın</option>
+                        <option value="Erkek">Erkek</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Eğitim Seviyesi</label>
+                    <select id="profEgitim" class="form-input">
+                        <option value="">Seçiniz</option>
+                        <option value="6">Lisansüstü (Y.Lisans/Doktora)</option>
+                        <option value="5">Üniversite Mezunu</option>
+                        <option value="4">Yüksekokul (2 Yıllık)</option>
+                        <option value="3">Lise Mezunu</option>
+                        <option value="2">Ortaokul Mezunu</option>
+                        <option value="1">İlkokul/Eğitimi Yok</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Meslek Grubu</label>
+                    <select id="profMeslek" class="form-input">
+                        <option value="">Seçiniz</option>
+                        <option value="6">Üst Düzey Yönetici / Büyük İş Sahibi / Profesyonel (Dr, Avukat vb.)</option>
+                        <option value="5">Orta Düzey Yönetici / Akademisyen / Uzman / Küçük İş Sahibi (10+ çalışan)</option>
+                        <option value="4">Esnaf (1-10 çalışan) / Memur / Teknik Eleman / Satış Temsilcisi</option>
+                        <option value="3">Kalifiye İşçi / Büro Personeli / Emekli (Memur/Uzman)</option>
+                        <option value="2">Yarı Kalifiye İşçi / Tarım / Ev Hanımı / Emekli (İşçi)</option>
+                        <option value="1">Vasıfsız İşçi / İşsiz / Öğrenci / Emekli (Bağ-Kur/Diğer)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ev Sahipliği</label>
+                    <select id="profEv" class="form-input">
+                        <option value="">Seçiniz</option>
+                        <option value="2">Ev Sahibi (Kendi evi)</option>
+                        <option value="1">Kiracı / Lojman / Diğer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Araba Sahipliği</label>
+                    <select id="profAraba" class="form-input">
+                        <option value="">Seçiniz</option>
+                        <option value="3">Araba Var (0-5 Yaş / Yeni)</option>
+                        <option value="2">Araba Var (6-10 Yaş)</option>
+                        <option value="1">Araba Var (10+ Yaş)</option>
+                        <option value="0">Araba Yok</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Sağlık Hizmeti Kullanımı</label>
+                    <select id="profSaglik" class="form-input">
+                        <option value="">Seçiniz</option>
+                        <option value="2">Özel Sağlık Sigortası / Özel Hastane (Düzenli)</option>
+                        <option value="1">Devlet Hastanesi / Sosyal Güvence</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>İl</label>
+                    <select id="profIl" class="form-input">
+                        <option value="">İl Seçiniz</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>İlçe</label>
+                    <select id="profIlce" class="form-input">
+                        <option value="">İlçe Seçiniz</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-basla" id="btnProfilKaydet" style="margin-top:1.5rem; width:100%;">
+                <span>Ankete Geç</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- EKRAN 1.6: HAZIRLIK -->
+    <div class="screen screen-hazirlik" id="screenHazirlik">
+        <div class="hazirlik-kart">
+            <div class="hazirlik-ikon">🚀</div>
+            <h2>Hazırsanız Başlayalım</h2>
+            <p>Bilgileriniz kaydedildi. Şimdi teste geçmeye hazırsınız.</p>
+            <div class="hazirlik-uyari">
+                <p>Lütfen mümkün olduğunca <strong>hızlı</strong> ve <strong>ilk aklınıza gelen</strong> cevabı verin.</p>
+            </div>
+            <button class="btn-basla" id="btnProjeyiBasla" style="width:100%;">
+                <span>Projeyi Başlat</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- EKRAN 2: SORU (TEK TEK) -->
+    <div class="screen screen-soru" id="screenSoru">
+        <div class="alistirma-badge">Alıştırma Sorusudur</div>
+        <div class="soru-progress-bar">
+            <div class="soru-progress-fill" id="soruProgressFill" style="width:0%"></div>
+        </div>
+        <div class="soru-progress-text" id="soruProgressText">1 / {{ markalar|length * ifadeler|length }}</div>
+
+        <div class="soru-kart" id="soruKart">
+            <div class="soru-logo-wrapper">
+                <img id="soruLogo" src="" alt="" class="soru-logo">
+                <audio id="soruAudio" preload="auto" style="display:none;"></audio>
+            </div>
+            <div class="soru-ifade-wrapper">
+                        <div class="soru-ifade-gorsel-container" id="soruIfadeGorselContainer" style="display:none; margin-bottom:1.5rem;">
+                            <img id="soruIfadeGorsel" src="" alt="" class="soru-ifade-gorsel">
+                        </div>
+                <div class="soru-ifade" id="soruIfade"></div>
+                <div class="soru-ifade-altcizgi"></div>
+            </div>
+            <div class="soru-butonlar">
+                <button class="btn-cevap btn-cevap-evet" id="btnEvet">
+                    <span>EVET</span>
+                </button>
+                <button class="btn-cevap btn-cevap-hayir" id="btnHayir">
+                    <span>HAYIR</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EKRAN 2.5: GECIS (ALISTIRMA BITTI) -->
+    <div class="screen screen-gecis" id="screenGecis">
+        <div class="gecis-kart">
+            <div class="gecis-ikon">🚀</div>
+            <h2 style="color:var(--primary); font-size:1.8rem;">Hazırlık Tamamlandı!</h2>
+            <p style="font-size:1.1rem; margin-bottom:1.5rem;">Hız ölçümünü başarıyla bitirdik.<br><strong style="color:var(--text-dark); font-size:1.2rem;">Şimdi asıl araştırma bölümü başlıyor!</strong></p>
+            <div class="gecis-uyari" style="background:rgba(99,102,241,0.08); border-left-color:var(--primary);">
+                <p>Lütfen mümkün olduğunca <strong>hızlı</strong> ve <strong>ilk aklınıza gelen</strong> cevabı vermeye devam edin. Sayfayı kapatmayın.</p>
+            </div>
+            <button class="btn-basla" id="btnAnaArastirmaBasla" style="width:100%; justify-content:center;">
+                <span>Asıl Araştırmayı Başlat</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- EKRAN 3: KAYDEDILIYOR (OTOMATIK GONDERIM) -->
+    <div class="screen screen-gonder" id="screenGonder">
+        <div class="gonder-kart">
+            <div class="gonder-ikon">⏳</div>
+            <h2>Cevaplarınız Kaydediliyor...</h2>
+            <p>Lütfen bekleyin, verileriniz güvenli bir şekilde sunucuya aktarılıyor.</p>
+            <div class="spinner-wrapper" style="margin: 2rem 0;">
+                <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round">
+                    <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+                </svg>
+            </div>
+            <p class="gonder-alt-bilgi" id="gonderAltBilgi" style="font-size: 0.9rem; color: var(--text-dim);">Son aşama tamamlanıyor...</p>
+            <!-- Gizli buton (JS tetiklemeleri icin) -->
+            <button id="btnGonderFinal" style="display:none;"></button>
+            <span id="spinner" style="display:none;"></span>
+        </div>
+    </div>
+
+    <!-- EKRAN 4: TESEKKUR -->
+    <div class="screen screen-tesekkur" id="screenTesekkur">
+        <div class="tesekkur-kart">
+            <div class="tesekkur-ikon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <h2>Tesekkur Ederiz! 🎉</h2>
+            <p>Cevaplariniz basariyla kaydedildi. Arastirmaya olan katkiniz bizim icin cok degerli.</p>
+            <div id="konfeti" class="konfeti-container"></div>
+        </div>
+    </div>
+
+    <!-- EKRAN 5: ZATEN TAMAMLANDI -->
+    <div class="screen screen-hata" id="screenZatenTamamlandi">
+        <div class="hata-kart">
+            <div class="hata-ikon" style="font-size: 4rem;">🚫</div>
+            <h2>Daha Önce Tamamlandı</h2>
+            <p>Bu araştırmayı zaten başarıyla tamamlamış görünüyorsunuz.<br>Katılımınız için teşekkür ederiz.</p>
+            <div style="margin-top: 2rem; color: var(--text-dim); font-size: 0.85rem;">
+                Aynı link üzerinden birden fazla katılım sağlanamaz.
+            </div>
+        </div>
+    </div>
+
+    <!-- EKRAN 6: KONUM REDDEDILDI -->
+    <div class="screen screen-hata" id="screenKonumReddedildi">
+        <div class="hata-kart">
+            <div class="hata-ikon" style="font-size: 4rem;">📍</div>
+            <h2>Konum İzni Gerekli</h2>
+            <p>Bu araştırmanın bilimsel geçerliliği ve kalite standartları gereği konum doğrulaması yapılmaktadır.</p>
+            <p>İzin vermediğiniz için araştırmaya devam edilemiyor.</p>
+            <div style="margin-top: 2rem;">
+                <button class="btn-basla" id="btnKonumTekrarDene" style="background: var(--text-dim);">
+                    <span>Tekrar Dene</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EKRAN 7: ZAYIF BAGLANTI UYARISI -->
+    <div class="screen screen-hata" id="screenZayifBaglanti">
+        <div class="hata-kart">
+            <div class="hata-ikon" style="font-size: 4rem;">📡</div>
+            <h2 style="color: #f59e0b;">Bağlantı Zayıf Görünüyor</h2>
+            <p>Araştırma sırasında görsellerin hızlı yüklenmesi sonuçların doğruluğu için çok önemlidir.</p>
+            <div style="background: rgba(245, 158, 11, 0.1); padding: 1rem; border-radius: 10px; margin: 1rem 0; text-align: left; font-size: 0.95rem;">
+                <strong>Önerilerimiz:</strong>
+                <ul style="margin-top: 0.5rem; padding-left: 1.2rem;">
+                    <li>Açık bir alana veya pencere kenarına geçin.</li>
+                    <li>Mümkünse bir WiFi ağına bağlanın.</li>
+                    <li>Arka planda çalışan indirmeleri durdurun.</li>
+                </ul>
+            </div>
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button class="btn-basla" id="btnZayifDevamEt" style="flex: 2; background: #f59e0b;">
+                    <span>Yine de Devam Et</span>
+                </button>
+                <button class="btn-pasif" id="btnZayifYenile" style="flex: 1; border: 1px solid #f59e0b; color: #f59e0b; background: transparent;">
+                    Yenile
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- COOKIE CONSENT -->
+    <div id="cookieBanner" class="cookie-banner" style="display: none;">
+        <div class="cookie-text">
+            🍪 <strong>Çerez ve Veri Kullanımı:</strong> Bu platform, anket deneyiminizi iyileştirmek, veri kalitesini ölçmek (hız, bağlantı durumu vb.) ve güvenliği sağlamak amacıyla çerezler ve teknik veriler kullanır. "Kabul Et" butonuna basarak bu verilerin anonim olarak analiz edilmesini kabul etmiş sayılırsınız.
+        </div>
+        <button class="cookie-btn" id="btnCookieAccept">Kabul Et</button>
+    </div>
+
+    {% endif %}
+
+    {% if proje and not hata and not tamamlandi %}
+    <script id="anketConfigData" type="application/json">{{ {
+        "PROJE_ID": (proje.id or 0),
+        "PROJE_KOD": (proje.benzersiz_kod or ''),
+        "MARKALAR": (markalar or []),
+        "IFADELER": (ifadeler or []),
+        "ALISTIRMA_AKTIF": 1,
+        "SORU_RANDOMIZE": (proje.soru_randomize or 0),
+        "KATILIMCI_TOKEN": (token or ''),
+        "TEST_TURU": (proje.test_turu or 'standart'),
+        "PANEL_COMPLETE": (proje.panel_complete_url or ''),
+        "MCRT_SECENEKLER": (mcrt_secenekler or []),
+        "MCRT_KURGU": (proje.mcrt_kurgu or 'marka_merkez'),
+        "MCRT_YERLESIM": (proje.mcrt_yerlesim or 'grid_standart')
+    } | tojson }}</script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {% endif %}
+</body>
+</html>

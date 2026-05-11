@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giris Yap - Sayiyoo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-logo">
+            <div class="brand-mark brand-mark-login" aria-label="Sayiyoo logo">
+                <img class="brand-logo-image brand-logo-image-login" src="{{ url_for('static', filename='images/sayiyoo-logo-v2.svg') }}" alt="Sayiyoo">
+            </div>
+        </div>
+
+        {% if hata %}
+        <div class="login-error">{{ hata }}</div>
+        {% endif %}
+
+        <form action="{{ url_for('login_sayfasi') }}" method="POST" autocomplete="off">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="login-form-group">
+                <label class="login-label" for="username">Kullanici Adi</label>
+                <input class="login-input" id="username" type="text" name="username" placeholder="admin" required autofocus>
+            </div>
+            <div class="login-form-group">
+                <label class="login-label" for="password">Sifre</label>
+                <input class="login-input" id="password" type="password" name="password" placeholder="********" required>
+            </div>
+            <button type="submit" class="login-button">Giris Yap</button>
+        </form>
+
+        <div class="login-footer">
+            &copy; 2024 Sayiyoo
+        </div>
+    </div>
+</body>
+</html>

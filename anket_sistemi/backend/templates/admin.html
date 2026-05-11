@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Dashboard - Marka Algı Araştırması</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand-mark brand-mark-sidebar" aria-label="Sayiyoo logo">
+                <img class="brand-logo-image brand-logo-image-sidebar" src="{{ url_for('static', filename='images/sayiyoo-logo-v2.svg') }}" alt="Sayiyoo">
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-label">Genel</div>
+            <div class="nav-item active" data-tab-target="projeler"><i class="icon">📁</i> <span>Projelerim</span></div>
+            <div id="navGroupProje" style="display:none;">
+                <div class="nav-label">Proje Yönetimi</div>
+                <div class="nav-item" data-tab-target="detay" id="navDetay"><i class="icon">⚙️</i> <span>Ayarlar</span></div>
+                <div class="nav-item" data-tab-target="linkler" id="navLinkler"><i class="icon">🔗</i> <span>Linkler</span></div>
+                <div class="nav-item" data-tab-target="analiz" id="navAnaliz"><i class="icon">📈</i> <span>Analiz & Kırılım</span></div>
+                <div class="nav-item" data-tab-target="katilimcilar" id="navKatilimcilar"><i class="icon">👥</i> <span>Katılımcılar</span></div>
+                <div class="nav-item" data-tab-target="rapor" id="navRapor"><i class="icon">📊</i> <span>Raporlama</span></div>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info"><span>{{ session.get('ad_soyad', 'Admin') }}</span></div>
+            <a href="/logout" class="nav-item" style="color: var(--danger);">Çıkış Yap</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="page-title"><h2 id="currentTabTitle">Projelerim</h2></div>
+            <button class="btn btn-outline btn-sm" id="btnTemaDegistir">🌙</button>
+        </header>
+
+        <div class="content-area">
+            <div class="toast" id="toast"></div>
+
+            <!-- PROJELER TAB -->
+            <div class="tab-content active" id="tabProjeler">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <div class="card-title">✨ Yeni Araştırma</div>
+                        <div style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--text-med);">
+                            <input type="checkbox" id="checkShowArchived" style="cursor:pointer;">
+                            <label for="checkShowArchived" style="cursor:pointer;">Arşivlenmişleri Göster</label>
+                        </div>
+                        <button class="btn btn-outline btn-sm" id="btnProjeYedekYukle">Yedek Yukle</button>
+                        <input type="file" id="inputProjeYedekDosya" accept=".zip,.json" style="display:none;">
+                    </div>
+                    <div style="display:flex; gap:1rem;">
+                        <input type="text" class="form-input" id="yeniProjeAd" placeholder="Proje Adı" style="flex:1;">
+                        <button class="btn btn-primary" id="btnProjeOlustur">Oluştur</button>
+                    </div>
+                </div>
+                <div class="proje-grid" id="projeGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap:1.5rem;"></div>
+            </div>
+
+            <!-- ANALIZ TAB -->
+            <div class="tab-content" id="tabAnaliz">
+                <div class="filter-bar">
+                    <div class="filter-group"><label>Cinsiyet</label><select id="fCinsiyet" class="form-select"><option value="">Tümü</option><option value="Kadın">Kadın</option><option value="Erkek">Erkek</option></select></div>
+                    <div class="filter-group"><label>SES Grubu</label><select id="fSes" class="form-select"><option value="">Tümü</option><option value="A">A SES</option><option value="B">B SES</option><option value="C1">C1 SES</option><option value="C2">C2 SES</option><option value="D">D SES</option><option value="E">E SES</option></select></div>
+                    <div class="filter-group"><label>Yaş</label><div style="display:flex; gap:0.25rem;"><input type="number" id="fYasMin" class="form-input" placeholder="Min" style="width:65px;"><input type="number" id="fYasMax" class="form-input" placeholder="Max" style="width:65px;"></div></div>
+                    <button class="btn btn-outline btn-sm" id="btnFiltreTemizle">Temizle</button>
+                </div>
+
+                <div class="card" id="analysisModeCard" style="border:1px solid var(--primary); background:rgba(99,102,241,0.06);">
+                    <div style="display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; flex-wrap:wrap;">
+                        <div>
+                            <div style="font-size:0.75rem; color:var(--text-dim); font-weight:700; text-transform:uppercase;">Aktif Analiz Motoru</div>
+                            <div id="analysisEngineBadge" style="font-size:1.4rem; font-weight:800; margin-top:0.25rem;">IRT</div>
+                            <div id="analysisSourceInfo" style="font-size:0.8rem; color:var(--text-med); margin-top:0.25rem;">Veri kaynağı: cevaplar</div>
+                        </div>
+                        <div id="analysisViewWrap" style="display:none; min-width:260px;">
+                            <div style="font-size:0.75rem; color:var(--text-dim); font-weight:700; text-transform:uppercase;">MCRT Gorunumu</div>
+                            <select id="analysisViewFilter" class="form-select" style="margin-top:0.35rem;"></select>
+                        </div>
+                        <div id="analysisAggregationWrap" style="min-width:220px; display:none;">
+                            <div style="font-size:0.75rem; color:var(--text-dim); font-weight:700; text-transform:uppercase;">Analiz D?zeyi</div>
+                            <select id="analysisAggregationFilter" class="form-select" style="margin-top:0.35rem;">
+                                <option value="ifade">Ifade Bazli</option>
+                                <option value="kategori">Kategori Bazli</option>
+                            </select>
+                        </div>
+                        <div id="analysisMetricList" style="font-size:0.85rem; color:var(--text-med); line-height:1.7; max-width:520px;">
+                            Explicit Algı • Implicit Güç • GAP • Korelasyon • Katılımcı kalite elemesi
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BİLİMSEL KORELASYON SKORLARI -->
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+                    <div class="card" style="border: 1px solid var(--primary); background: rgba(99, 102, 241, 0.05);">
+                        <div class="card-title" style="color:var(--primary);">📏 Pearson Korelasyonu (Doğrusal)</div>
+                        <div id="valPearson" style="font-size:2.5rem; font-weight:800; text-align:center;">0.000</div>
+                        <p style="font-size:0.8rem; color:var(--text-dim); text-align:center;">Beyan ve Bilinçaltı arasındaki doğrusal ilişki gücü.</p>
+                    </div>
+                    <div class="card" style="border: 1px solid var(--secondary); background: rgba(139, 92, 246, 0.05);">
+                        <div class="card-title" style="color:var(--secondary);">🧬 Spearman Korelasyonu (Sıralama)</div>
+                        <div id="valSpearman" style="font-size:2.5rem; font-weight:800; text-align:center;">0.000</div>
+                        <p style="font-size:0.8rem; color:var(--text-dim); text-align:center;">Marka sıralamalarının beyan ve bilinçaltındaki tutarlılığı.</p>
+                    </div>
+                </div>
+
+                <!-- EN USTTE SCATTER PLOT -->
+                <div class="card analysis-card">
+                    <div class="analysis-card-header">
+                        <div class="card-title" style="margin:0;">🗺️ Bilinçaltı Algı Haritası (Scatter Plot)</div>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <label style="font-size:0.85rem; color:var(--text-dim);">İfadeye Göre Odaklan:</label>
+                            <select id="scatterIfadeFiltre" class="form-select" style="width:200px; color: #1e293b; background-color: #ffffff;">
+                                <option value="">Tüm İfadeler (Karışık)</option>
+                            </select>
+                            <button class="analysis-expand-btn" type="button" data-action="toggle-fullscreen" title="Büyüt / küçült">⤢</button>
+                        </div>
+                    </div>
+                    <div class="analysis-card-body tall"><canvas id="chartScatter"></canvas></div>
+                </div>
+
+                <!-- YAPAY ZEKA UZMAN RAPORU -->
+                <div class="card" id="aiCard" style="border: 2px solid var(--primary); background: rgba(99, 102, 241, 0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <div class="card-title" style="color:var(--primary); margin:0;">🤖 Yapay Zeka IRT Uzmanı Analizi</div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-outline btn-sm"  id="btnAiPdf" style="display:none;">📄 PDF İndir</button>
+                            <button class="btn btn-primary"  id="btnAiRapor">Analiz Üret (DeepSeek)</button>
+                        </div>
+                    </div>
+                    <div id="aiRaporContainer" style="padding:2.5rem; border-radius:12px; background:#ffffff !important; font-size:1.05rem; line-height:1.8; display:none; border:1px solid #e2e8f0; color: #0f172a !important; box-shadow: 0 4px 20px rgba(0,0,0,0.08); font-family: 'Inter', sans-serif;">
+                        <!-- AI raporu buraya gelecek -->
+                    </div>
+                </div>
+
+<script src="{{ url_for('static', filename='vendor/html2pdf.bundle.min.js') }}"></script>
+
+                <!-- 🔬 VERİ KALİTE RAPORU (YENİ) -->
+                <div class="card" style="border-left: 5px solid #10b981;">
+                    <div class="card-title">🔍 Veri Kalitesi ve Temizlik Özeti</div>
+                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:1rem; margin-bottom:1rem;">
+                        <div style="text-align:center; padding:1rem; background:#f8fafc; border-radius:8px;">
+                            <div style="font-size:0.75rem; color:var(--text-dim);">TOPLAM KATILIMCI</div>
+                            <div id="qTotalN" style="font-size:1.5rem; font-weight:800; color:var(--text-dark);">0</div>
+                        </div>
+                        <div style="text-align:center; padding:1rem; background:#fef2f2; border-radius:8px;">
+                            <div style="font-size:0.75rem; color:#ef4444;">ELENEN (DÜŞÜK KALİTE)</div>
+                            <div id="qExcludedN" style="font-size:1.5rem; font-weight:800; color:#ef4444;">0</div>
+                        </div>
+                        <div style="text-align:center; padding:1rem; background:#f0fdf4; border-radius:8px;">
+                            <div style="font-size:0.75rem; color:#10b981;">GEÇERLİ ÖRNEKLEM (N)</div>
+                            <div id="qFinalN" style="font-size:1.5rem; font-weight:800; color:#10b981;">0</div>
+                        </div>
+                        <div style="text-align:center; padding:1rem; background:#f8fafc; border-radius:8px;">
+                            <div id="qFourthLabel" style="font-size:0.75rem; color:var(--text-dim);">ELENEN TRIAL (%)</div>
+                            <div id="qTrialPct" style="font-size:1.5rem; font-weight:800; color:var(--text-dark);">%0</div>
+                        </div>
+                    </div>
+                    <div id="qDetails" style="font-size:0.8rem; color:var(--text-dim); background:#fff; padding:0.5rem; border:1px solid #f1f5f9; border-radius:6px; max-height:100px; overflow-y:auto;">
+                        Eleme kriterleri: >%10 hızlı yanıt, >%90 yanıt yanlılığı, >%30 alıştırma hatası.
+                    </div>
+                </div>
+
+                <!-- 📊 İSTATİSTİKSEL ANLAMLILIK TESTLERİ (YENİ) -->
+                <div class="card analysis-card">
+                    <div class="analysis-card-header">
+                        <div class="card-title" id="istatistikKartBaslik">🔬 İstatistiksel Anlamlılık ve Etki Büyüklüğü (Marka Kıyaslama)</div>
+                        <button class="analysis-expand-btn" type="button" data-action="toggle-fullscreen" title="Büyüt / küçült">⤢</button>
+                    </div>
+                    <p id="istatistikKartAciklama" style="font-size:0.85rem; color:var(--text-dim); margin-bottom:1rem;">Markalar arasındaki farkların bilimsel olarak anlamlılığı (p-value) ve etkinin büyüklüğü (Cohen's d).</p>
+                    <div style="overflow-x:auto;">
+                        <table class="data-table" style="font-size:0.85rem;">
+                            <thead>
+                                <tr style="background:#f8fafc;">
+                                    <th id="istatistikTh0">Karşılaştırma</th>
+                                    <th id="istatistikTh1">Explicit Fark</th>
+                                    <th id="istatistikTh2">P-Value (Exp)</th>
+                                    <th id="istatistikTh3">Güven Aralığı (%95)</th>
+                                    <th id="istatistikTh4">P-Value (Imp)</th>
+                                    <th id="istatistikTh5">Cohen's d</th>
+                                    <th id="istatistikTh6">Yorum</th>
+                                </tr>
+                            </thead>
+                            <tbody id="istatistikBody">
+                                <tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-dim);">Veri işleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+                    <div class="card analysis-card radar-card">
+                        <div class="analysis-card-header">
+                            <div class="card-title">📉 GAP Analizi (Beyan vs Bilinçaltı)</div>
+                            <button class="analysis-expand-btn" type="button" data-action="toggle-fullscreen" title="Büyüt / küçült">⤢</button>
+                        </div>
+                        <div class="analysis-card-body"><canvas id="chartGap"></canvas></div>
+                    </div>
+                    <div class="card analysis-card">
+                        <div class="analysis-card-header">
+                            <div class="card-title">Marka Algi Gorunumu</div>
+                            <select id="networkViewFilter" class="form-select btn-sm" style="min-width:170px;">
+                                <option value="ag">Ag (Radar)</option>
+                                <option value="isi">Isi Haritasi</option>
+                                <option value="kategori">Kategori</option>
+                                <option value="bar">Bar Chart</option>
+                            </select>
+                            <button class="analysis-expand-btn" type="button" data-action="toggle-fullscreen" title="Buyut / kucult">+</button>
+                        </div>
+                        <div class="analysis-card-body">
+                            <canvas id="chartRadar"></canvas>
+                            <div id="chartRadarHeatmap" class="heatmap-wrap" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+                    <div class="card analysis-card">
+                        <div class="analysis-card-header">
+                            <div class="card-title">Explicit Algı (%)</div>
+                            <button class="analysis-expand-btn" type="button" data-action="toggle-fullscreen" title="Büyüt / küçült">⤢</button>
+                        </div>
+                        <div class="analysis-card-body"><canvas id="chartExplicit"></canvas></div>
+                    </div>
+                    <div class="card analysis-card">
+                        <div class="analysis-card-header">
+                            <div class="card-title">Implicit Güç (Skor)</div>
+                            <button class="analysis-expand-btn" type="button" data-action="toggle-fullscreen" title="Büyüt / küçült">⤢</button>
+                        </div>
+                        <div class="analysis-card-body"><canvas id="chartImplicit"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+                        <div class="card-title">📑 Ham Veri Kayıtları</div>
+                        <div id="hamVeriFiltreBilgi" style="font-size:0.85rem; color:var(--text-dim);"></div>
+                    </div>
+                    <div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Katılımcı</th><th>Marka</th><th>İfade</th><th>Cevap</th><th>Süre</th></tr></thead><tbody id="hamVeriBody"></tbody></table></div>
+                    <div id="hamVeriPager" class="table-pager"></div>
+                </div>
+                <div class="card" style="margin-top:1.5rem;">
+                    <div class="card-title">👥 Katılımcı Bazlı Değerlendirme (Takip İçin Seçim)</div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Katılımcı</th>
+                                    <th>Demografi</th>
+                                    <th>Ort. Hız (ms)</th>
+                                    <th>Güçlü Yanıt</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listKatilimciAnaliz">
+                                <tr><td colspan="5" style="text-align:center;">Veri bekleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="katilimciAnalizPager" class="table-pager"></div>
+                </div>
+            </div>
+
+            <!-- DETAY / AYARLAR TAB -->
+            <div class="tab-content" id="tabDetay">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h2 id="detayProjeAd"></h2>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-danger btn-sm" id="btnProjeSil">🗑️ Projeyi Tamamen Sil</button>
+                            <button class="btn btn-outline btn-sm" id="btnProjeYedekle">Yedek Al</button>
+                            <div id="detayDurumBtnler"></div>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; border-top: 1px solid var(--border); padding-top:1rem;">
+                        <div class="filter-group">
+                            <label>Hedef Örneklem</label>
+                            <input type="number" id="editHedefOrneklem" class="form-input" placeholder="Örn: 100" >
+                        </div>
+                        <div class="filter-group">
+                            <label>Anket Durumu</label>
+                            <select id="editProjeDurum" class="form-select" >
+                                <option value="taslak">Taslak</option>
+                                <option value="canli">Canlı</option>
+                                <option value="kapali">Kapalı</option>
+                                <option value="arsiv">Arşivlenmiş</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Test Kurgusu</label>
+                        <select id="editTestTuru" class="form-select" >
+                                <option value="standart">Standart (Tüm Markalar)</option>
+                                <option value="monadik">Monadik A/B (Rastgele 1 Marka)</option>
+                                <option value="ses">Ses Testi (Audio Implicit)</option>
+                                <option value="mcrt">MCRT (Çoktan Seçmeli Tepki Süresi)</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Ayarlar</label>
+                            <div style="display:flex; gap:0.5rem; align-items:center; height:100%;">
+                                <input type="checkbox" id="editSoruRandomize" > <label for="editSoruRandomize" style="font-size:0.8rem;" title="Markaları dengeli dağıtarak üst üste gelmelerini engeller. (Smart Shuffle)">Akıllı Dağıtım (Dengeli Permütasyon)</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="mcrtKurguAlani" style="display:none; grid-template-columns: 1fr; gap:1rem; border-top: 1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+                        <div class="filter-group">
+                            <label>MCRT Setup / Kurgu Türü</label>
+                            <select id="editMcrtKurgu" class="form-select" >
+                            <option value="cift_blok">Cift Blok: Once Marka Merkez, Sonra Ifade Merkez</option>
+                            <option value="marka_merkez">🏢 Ortada Marka (Logo) -> Çevrede İfade Butonları</option>
+                            <option value="ifade_merkez">🎯 Ortada İfade (Kelime) -> Çevrede Marka Logoları</option>
+                            </select>
+                            <small style="color:var(--text-dim); margin-top:0.3rem; display:block;">Seçtiğiniz kurguya göre kullanılmayan paneller otomatik olarak karartılacaktır.</small>
+                            <div style="margin-top:0.75rem; padding:0.9rem 1rem; border:1px solid var(--border); border-radius:12px; background:rgba(99,102,241,0.04); color:var(--text); font-size:0.9rem; line-height:1.5;">
+                                <div style="font-weight:700; margin-bottom:0.4rem;">i  Hangi durumda hangisini secmeliyim?</div>
+                                <div><strong>Ortada kelime / ifade:</strong> Sonuc, <strong>bu ifade hangi markaya gidiyor</strong> sorusunu verir. Marka sahipligi ve kategori icinde hangi marka bu anlami kapti sorularinda bunu kullan.</div>
+                                <div style="margin-top:0.45rem;"><strong>Ortada logo / marka:</strong> Sonuc, <strong>bu marka hangi ifadeye gidiyor</strong> sorusunu verir. Brand asset, konumlandirma, paket ve iletisim testlerinde bunu kullan.</div>
+                                <div style="margin-top:0.45rem;"><strong>Cift blok:</strong> Once marka sonra ifade gelir. Hem <strong>markadan anlama</strong> hem <strong>anlamdan markaya</strong> bakarsin. Yeni musteriler ve stratejik tekliflerde varsayilan onerim budur.</div>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label>MCRT Secenek Yerlesimi</label>
+                            <select id="editMcrtYerlesim" class="form-select" >
+                                <option value="grid_standart">Standart 4'lu Grid (Onerilen)</option>
+                                <option value="serbest_denemsel">Deneysel Serbest Yerlesim</option>
+                            </select>
+                            <small style="color:var(--text-dim); margin-top:0.3rem; display:block;">Standart grid, tepki suresi karsilastirmalari icin onerilir. Serbest yerlesim gorsel arama yukunu artirir.</small>
+                        </div>
+                        <div id="mcrtGuardrailBox" style="padding:0.9rem 1rem; border:1px solid rgba(245,158,11,0.35); border-radius:12px; background:rgba(245,158,11,0.08); color:var(--text); font-size:0.88rem; line-height:1.5;"></div>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; border-top: 1px solid var(--border); padding-top:1rem; margin-top:1rem;">
+                        <div class="filter-group">
+                            <label>Panel Yönlendirme (Complete)</label>
+                            <input type="text" id="editPanelComplete" class="form-input" placeholder="https://panel.com/complete?id=[PID]" >
+                        </div>
+                        <div class="filter-group">
+                            <label>Panel Yönlendirme (Screenout)</label>
+                            <input type="text" id="editPanelScreenout" class="form-input" placeholder="https://panel.com/screenout?id=[PID]" >
+                        </div>
+                        <div class="filter-group">
+                            <label>Panel Yönlendirme (QuotaFull)</label>
+                            <input type="text" id="editPanelQuotaFull" class="form-input" placeholder="https://panel.com/quotafull?id=[PID]" >
+                        </div>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+                    <div class="card">
+                        <div class="card-title">🏷️ Markalar</div>
+                        <div style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:1rem; border-radius:12px;">
+                            <input type="text" id="yeniMarkaAd" class="form-input" placeholder="Marka Adı (Katılımcının gördüğü)">
+                            <div style="position:relative;">
+                                <input type="text" id="yeniMarkaEtiket" class="form-input" placeholder="Analiz Etiketi (Admin için — boş bırakılırsa Marka Adı kullanılır)" style="border-color:rgba(99,102,241,0.4); background:rgba(99,102,241,0.05);">
+                                <div style="font-size:0.65rem; color:var(--primary); margin-top:2px;">📊 Aynı markanın 2 versiyonu varsa buraya ayırt edici isim yazın (ör: Efes Malt Klasik)</div>
+                            </div>
+                            <div style="display:flex; gap:0.5rem; align-items:center;">
+                                <label style="font-size:0.75rem; color:var(--text-med);">Görsel/Ses:</label>
+                                <input type="file" id="yeniMarkaResim" class="form-input" style="flex:1; font-size:0.7rem;">
+                            </div>
+                            <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.25rem;">
+                                <input type="checkbox" id="yeniMarkaNoise" style="width:16px; height:16px; cursor:pointer;">
+                                <label for="yeniMarkaNoise" style="font-size:0.8rem; color:var(--text-med); cursor:pointer;">⚠️ Çeldirici (Noise/Distractor)</label>
+                            </div>
+                            <button class="btn btn-primary" id="btnMarkaEkle">Marka Ekle</button>
+                        </div>
+                        <ul id="markaListesi" class="item-list"></ul>
+                    </div>
+                    <div class="card">
+                        <div style="display:flex; flex-direction:column; gap:0.5rem; background:rgba(99, 102, 241, 0.05); border:1px solid rgba(99, 102, 241, 0.2); padding:0.75rem; border-radius:12px; margin-bottom:1rem;">
+                            <label style="font-size:0.75rem; font-weight:700; color:var(--primary);">ARAŞTIRMA BRİEF'İ (İş Problemi + Hedef Kitle)</label>
+                            <textarea id="aiHedeKitle" class="form-input" rows="3" placeholder="Örn: Yeni Rakı son 2 yılda satış kaybı yaşıyor. Rakiplere karşı nerede zayıf olduğumuzu anlamak istiyoruz. Hedef kitle 25-45 yaş arası erkekler." style="font-size:0.8rem; background:white; resize:vertical; min-height:60px; line-height:1.5;"></textarea>
+                            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                                <button class="btn btn-primary btn-sm" id="btnAiKategori" >AI Araştırma Tasarımı</button>
+                            </div>
+                            <small style="color:var(--text-dim);">İş problemini ne kadar detaylı yazarsanız, AI o kadar isabetli hipotez ve ifade seti önerir. Kısa bırakırsanız genel kategoriler gelir.</small>
+                        </div>
+                        <div id="aiOneriKutusu" style="display:none; background:rgba(99, 102, 241, 0.02); border:1px dashed var(--primary); padding:1rem; border-radius:12px; margin-bottom:1rem;">
+                            <div style="font-size:0.75rem; font-weight:700; color:var(--primary); margin-bottom:0.5rem; display:flex; justify-content:space-between;">
+                                <span>AI HİPOTEZ BAZLI KATEGORİLER</span>
+                                <span data-action="dismiss-ai-oneri" style="cursor:pointer;">x</span>
+                            </div>
+                            <div id="aiOneriListe" style="display:flex; flex-wrap:wrap; gap:0.5rem;"></div>
+                        </div>
+                        <div id="aiKategoriIfadeKutusu" style="display:none; background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:1rem; border-radius:12px; margin-bottom:1rem;">
+                            <div style="font-size:0.75rem; font-weight:700; color:var(--primary); margin-bottom:0.75rem;">AI ARAŞTIRMA TASARIM STÜDYOSU</div>
+                            <div id="aiKategoriKartlari" style="display:flex; flex-direction:column; gap:0.75rem;"></div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1rem; background:rgba(255,255,255,0.03); padding:1rem; border-radius:12px;">
+                            <input type="text" id="yeniIfadeMetin" class="form-input" placeholder="Ifade Metni">
+                            <input type="text" id="yeniIfadeKategori" class="form-input" placeholder="Kategori (Orn: Kalite ve Guven)">
+                            <div style="display:flex; gap:0.5rem; align-items:center;">
+                                <label style="font-size:0.75rem; color:var(--text-med);">Gorsel/Ses:</label>
+                                <input type="file" id="yeniIfadeResim" class="form-input" style="flex:1; font-size:0.7rem;">
+                            </div>
+                            <button class="btn btn-primary" id="btnIfadeEkle">Ifade Ekle</button>
+                        </div>
+                        <ul id="ifadeListesi" class="item-list"></ul>
+                    </div>
+                </div>
+
+                <!-- MCRT SECENEKLER KARTI (SADECE MCRT ICIN) -->
+                <div id="cardMcrtSecenekler" class="card" style="display:none; margin-top:1.5rem; border:1px solid var(--primary);">
+                    <div class="card-title">🔘 MCRT Seçenekleri (Butonlar)</div>
+                    <p style="font-size:0.85rem; color:var(--text-dim); margin-bottom:1rem;">Katılımcının karşısına çıkacak olan çoktan seçmeli butonları buradan ekleyin.</p>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 2fr; gap:1.5rem;">
+                        <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:12px;">
+                            <div class="filter-group" style="margin-bottom:1rem;">
+                                <label>Yeni Seçenek Metni</label>
+                                <input type="text" id="yeniMcrtSecenekMetin" class="form-input" placeholder="Örn: Kaliteli">
+                            </div>
+                            <div class="filter-group" style="margin-bottom:1rem;">
+                                <label>İkon / Görsel (Opsiyonel)</label>
+                                <input type="file" id="yeniMcrtSecenekResim" class="form-input" style="font-size:0.7rem;">
+                            </div>
+                            <button class="btn btn-primary" style="width:100%;" id="btnMcrtSecenekEkle">Seçenek Ekle</button>
+                        </div>
+                        <div>
+                            <ul id="mcrtSecenekListesi" class="item-list"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KATILIMCILAR TAB (ŞİFRELİ) -->
+            <div class="tab-content" id="tabKatilimcilar">
+                <div class="card">
+                    <div class="card-title">👥 Katılımcı Teknik Detayları & Oturumlar</div>
+                    <p style="font-size:0.85rem; color:var(--text-dim); margin-bottom:1rem;">Ankete başlayan, yarıda bırakan ve tamamlayan tüm katılımcıların cihaz/tarayıcı bilgileri.</p>
+                    <div style="overflow-x:auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Durum</th>
+                                    <th>Ad Soyad / PID</th>
+                                    <th>Cihaz / Tarayıcı</th>
+                                    <th>İl / SES</th>
+                                    <th>Başlangıç</th>
+                                    <th>Bitiş</th>
+                                </tr>
+                            </thead>
+                            <tbody id="katilimciDetayBody">
+                                <tr><td colspan="6" style="text-align:center;">Yükleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LINKLER TAB -->
+            <div class="tab-content" id="tabLinkler">
+                <div class="card"><div class="card-title">🔗 Katılımcı Linkleri</div><div style="display:flex; gap:1rem;"><input type="number" id="inputLinkAdet" class="form-input" value="50" style="width:100px;"><button class="btn btn-primary" id="btnLinkOlustur">Üret</button></div></div>
+                <div class="card"><div class="card-title">Hizli Kontrol Listesi</div><div style="font-size:0.9rem; color:var(--text-med); line-height:1.6;">1. Yeni bir link ac ve testin bastan geldigini kontrol et.<br>2. Linki bir kez kullanip tekrar acilamadigini kontrol et.<br>3. Adminden <strong>Yeniden Ac</strong> yapip ayni linkin tekrar bastan actigini kontrol et.<br>4. Katilimcilar ekraninda <strong>Bitti / Yar?m / Ge?ersiz</strong> durumlarinin dogru aktigini kontrol et.<br>5. Proje kartinda <strong>Biten / Yar?m / Outlier / Gercek soruya gecmeden ayrilan</strong> sayilarini kontrol et.</div></div>
+                <div class="card"><div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Token</th><th>Link</th><th>Durum</th></tr></thead><tbody id="linkListesiBody"></tbody></table></div></div>
+            </div>
+            <!-- RAPOR TAB -->
+            <div class="tab-content" id="tabRapor">
+                <div class="card" style="text-align:center; padding:4rem;">
+                    <h2>Rapor Paketi</h2>
+                    <p>Standart raporu ya da yapay zeka yorumlu danisman deck'ini indir.</p>
+                    <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap; margin-top:2rem;">
+                        <button class="btn btn-primary" id="btnRaporOlustur">Raporu ?ndir</button>
+                        <button class="btn btn-outline" id="btnAiRaporOlustur">AI Raporu ?ndir</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='admin.js') }}"></script>
+</body>
+</html>
+

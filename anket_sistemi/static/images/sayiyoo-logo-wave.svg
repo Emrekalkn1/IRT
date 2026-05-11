@@ -1,0 +1,59 @@
+<svg width="720" height="180" viewBox="0 0 720 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Sayiyoo animated logo</title>
+  <desc id="desc">Sayiyoo wordmark with subtle wave animation on the top dots and eyeglass shaped final oo.</desc>
+  <style>
+    .wordmark {
+      fill: #0A2342;
+      font-family: Inter, Arial, sans-serif;
+      font-size: 82px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .dot {
+      fill: #006272;
+      opacity: 0.95;
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: wave 3.8s ease-in-out infinite;
+    }
+
+    .dot.d1 { animation-delay: 0s; }
+    .dot.d2 { animation-delay: 0.18s; }
+    .dot.d3 { animation-delay: 0.36s; }
+    .dot.d4 { animation-delay: 0.54s; }
+    .dot.d5 { animation-delay: 0.72s; }
+    .dot.d6 { animation-delay: 0.90s; }
+    .dot.d7 { animation-delay: 1.08s; }
+
+    .glasses {
+      stroke: #0A2342;
+      stroke-width: 7;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @keyframes wave {
+      0%, 100% { transform: translateY(0px); }
+      25% { transform: translateY(-2px); }
+      50% { transform: translateY(-4px); }
+      75% { transform: translateY(-1px); }
+    }
+  </style>
+
+  <text class="wordmark" x="42" y="118">Sayiy</text>
+
+  <circle class="dot d1" cx="82" cy="42" r="6"/>
+  <circle class="dot d2" cx="145" cy="38" r="6"/>
+  <circle class="dot d3" cx="208" cy="44" r="6"/>
+  <circle class="dot d4" cx="270" cy="39" r="6"/>
+  <circle class="dot d5" cx="332" cy="43" r="6"/>
+  <circle class="dot d6" cx="398" cy="38" r="6"/>
+  <circle class="dot d7" cx="458" cy="42" r="6"/>
+
+  <circle class="glasses" cx="546" cy="91" r="28"/>
+  <circle class="glasses" cx="604" cy="91" r="28"/>
+  <path class="glasses" d="M574 91H576"/>
+  <path class="glasses" d="M518 89C508 85 500 84 492 87"/>
+</svg>

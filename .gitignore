@@ -1,0 +1,22 @@
+# Özel şifre dosyası
+SIFRELERIM_GİZLİ.txt
+SIFRELERIM_GIZLI.txt
+
+# Tüm arşiv ve yedek dosyaları
+*.zip
+*.rar
+anket_sistemi_backup_*/
+anket_sistemi_restorepoint_*/
+
+# Sistem dosyaları
+.DS_Store
+Thumbs.db
+
+# Anket sistemi içindeki gereksizler
+anket_sistemi/anket.db
+anket_sistemi/.env
+anket_sistemi/server_error.log
+anket_sistemi/__pycache__/
+anket_sistemi/scratch/
+anket_sistemi/backend/scratch/
+anket_sistemi/output/

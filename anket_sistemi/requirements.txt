@@ -1,0 +1,13 @@
+flask
+pandas
+numpy
+scipy
+matplotlib
+openpyxl
+seaborn
+python-dotenv
+python-pptx==0.6.23
+Flask-Limiter
+Flask-WTF
+mysql-connector-python
+openai
