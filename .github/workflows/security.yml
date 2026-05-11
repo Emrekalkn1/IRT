@@ -1,0 +1,77 @@
+name: Full Enterprise Security Scan
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  schedule:
+    - cron: '0 0 * * *' # Her gece çalıştır
+
+jobs:
+  gitleaks:
+    name: Secret Scan (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  semgrep:
+    name: SAST Scan (Semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Semgrep Scan
+        run: |
+          pip install semgrep
+          semgrep scan --config p/owasp-top-ten --config p/security-audit --error
+
+  codeql:
+    name: Advanced SAST (CodeQL)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  dependency-check:
+    name: Dependency Scan (OSV & Pip-Audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Run Pip-Audit
+        run: |
+          pip install pip-audit
+          pip-audit -r anket_sistemi/requirements.txt
+      - name: Run OSV Scanner
+        uses: google/osv-scanner-action/scan@v1
+        with:
+          scan-args: ./anket_sistemi
+
+  # Not: ZAP taraması için çalışan bir URL gerekir, bu nedenle baseline olarak ekliyoruz
+  zap_scan:
+    name: DAST Baseline Scan (OWASP ZAP)
+    runs-on: ubuntu-latest
+    steps:
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: 'https://github.com/${{ github.repository }}' # Örnek hedef, gerçek URL ile güncellenebilir
+          rules_file_name: '.zap/rules.tsv'
+          fail_action: false
