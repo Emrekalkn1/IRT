@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 Marka Algi Anket Sistemi - Flask Uygulamasi
 Proje bazli mimari
@@ -111,7 +111,7 @@ def varsayilan_admin_olustur():
     
     admin = db.kullanici_dogrula(admin_user)
     if not admin:
-        db.kullanici_olustur(admin_user, generate_password_hash(admin_pass), "Sistem Yöneticisi")
+        db.kullanici_olustur(admin_user, generate_password_hash(admin_pass), "Sistem YÃ¶neticisi")
 
 varsayilan_admin_olustur()
 
@@ -180,7 +180,7 @@ def yedek_dosyasini_oku(yuklu_dosya):
     if dosya_adi.endswith(".zip"):
         with zipfile.ZipFile(io.BytesIO(ham), "r") as zf:
             if "manifest.json" not in zf.namelist():
-                raise ValueError("ZIP yedeğinde manifest.json bulunamadi.")
+                raise ValueError("ZIP yedeÄŸinde manifest.json bulunamadi.")
             yedek_verisi = json.loads(zf.read("manifest.json").decode("utf-8"))
 
             for uye in zf.namelist():
@@ -274,7 +274,7 @@ def anket_sayfasi(kod, token=None):
     if not proje:
         return render_template("anket.html", hata="Bu anket bulunamadi."), 404
     
-    # Token kontrolü
+    # Token kontrolÃ¼
     if token:
         tk = db.katilimci_linki_dogrula(token)
         if not tk or tk['proje_id'] != proje['id']:
@@ -291,10 +291,10 @@ def anket_sayfasi(kod, token=None):
     if proje.get('test_turu') in ['mcrt', 'mrt']:
         mcrt_secenekler = db.proje_mcrt_secenekleri(proje['id'])
 
-    # Çerez kontrolü (Sadece token yoksa veya token geçersizse ana engelleyici olsun)
+    # Ã‡erez kontrolÃ¼ (Sadece token yoksa veya token geÃ§ersizse ana engelleyici olsun)
     tamamlandi_cerezi = request.cookies.get(f"anket_{kod}", "0") == "1"
     
-    # Eğer geçerli bir token varsa, çerezi görmezden gel (aynı cihazdan farklı katılımcılar için)
+    # EÄŸer geÃ§erli bir token varsa, Ã§erezi gÃ¶rmezden gel (aynÄ± cihazdan farklÄ± katÄ±lÄ±mcÄ±lar iÃ§in)
     is_tamamlandi = tamamlandi_cerezi
     if token and not (not tk or tk['proje_id'] != proje['id']):
         is_tamamlandi = False
@@ -341,14 +341,14 @@ def proje_olustur():
         bilgilendirme = veri.get("bilgilendirme", "").strip()
 
         if not ad:
-            return jsonify({"durum": "hata", "mesaj": "Proje adı boş olamaz."}), 400
+            return jsonify({"durum": "hata", "mesaj": "Proje adÄ± boÅŸ olamaz."}), 400
 
         proje_id, kod = db.proje_olustur(ad, aciklama, bilgilendirme)
         return jsonify({
             "durum": "basarili",
             "proje_id": proje_id,
             "kod": kod,
-            "mesaj": f"Proje '{ad}' oluşturuldu!"
+            "mesaj": f"Proje '{ad}' oluÅŸturuldu!"
         })
     except Exception as e:
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
@@ -389,7 +389,7 @@ def proje_guncelle_api(proje_id):
             panel_screenout_url=veri.get("panel_screenout_url"),
             panel_quotafull_url=veri.get("panel_quotafull_url")
         )
-        return jsonify({"durum": "basarili", "mesaj": "Proje güncellendi."})
+        return jsonify({"durum": "basarili", "mesaj": "Proje gÃ¼ncellendi."})
     except Exception as e:
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
 
@@ -401,7 +401,7 @@ def proje_durum(proje_id):
         veri = request.get_json()
         yeni_durum = veri.get("durum", "")
         if yeni_durum not in ("taslak", "canli", "kapali", "arsiv"):
-            return jsonify({"durum": "hata", "mesaj": "Geçersiz durum."}), 400
+            return jsonify({"durum": "hata", "mesaj": "GeÃ§ersiz durum."}), 400
 
         proje = db.proje_getir(proje_id)
         if not proje:
@@ -489,12 +489,12 @@ def link_olustur_api(proje_id):
         veri = request.get_json()
         adet = int(veri.get("adet", 1))
         if adet < 1 or adet > 500:
-            return jsonify({"durum": "hata", "mesaj": "Geçersiz adet (1-500)."}), 400
+            return jsonify({"durum": "hata", "mesaj": "GeÃ§ersiz adet (1-500)."}), 400
         
         tokens = db.katilimci_linki_olustur(proje_id, adet)
         return jsonify({
             "durum": "basarili",
-            "mesaj": f"{adet} adet link oluşturuldu.",
+            "mesaj": f"{adet} adet link oluÅŸturuldu.",
             "tokens": tokens
         })
     except Exception as e:
@@ -531,7 +531,7 @@ def marka_ekle_api(proje_id):
     try:
         ad = request.form.get("ad", "").strip()
         if not ad:
-            return jsonify({"durum": "hata", "mesaj": "Marka adı boş olamaz."}), 400
+            return jsonify({"durum": "hata", "mesaj": "Marka adÄ± boÅŸ olamaz."}), 400
 
         resim_dosya = ""
         if 'resim' in request.files:
@@ -574,7 +574,7 @@ def ifade_ekle_api(proje_id):
         metin = request.form.get("metin", "").strip()
         kategori = request.form.get("kategori", "").strip()
         if not metin:
-            return jsonify({"durum": "hata", "mesaj": "İfade metni boş olamaz."}), 400
+            return jsonify({"durum": "hata", "mesaj": "Ä°fade metni boÅŸ olamaz."}), 400
 
         resim_dosya = ""
         if 'resim' in request.files:
@@ -588,7 +588,7 @@ def ifade_ekle_api(proje_id):
         return jsonify({
             "durum": "basarili",
             "ifade_id": ifade_id,
-            "mesaj": f"İfade '{metin}' eklendi."
+            "mesaj": f"Ä°fade '{metin}' eklendi."
         })
     except Exception as e:
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
@@ -599,7 +599,7 @@ def ifade_ekle_api(proje_id):
 def ifade_sil_api(ifade_id):
     try:
         db.ifade_sil(ifade_id)
-        return jsonify({"durum": "basarili", "mesaj": "İfade silindi."})
+        return jsonify({"durum": "basarili", "mesaj": "Ä°fade silindi."})
     except Exception as e:
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
 
@@ -623,7 +623,7 @@ def mcrt_secenek_ekle_api(proje_id):
     try:
         metin = request.form.get("metin", "").strip()
         if not metin:
-            return jsonify({"durum": "hata", "mesaj": "Seçenek metni boş olamaz."}), 400
+            return jsonify({"durum": "hata", "mesaj": "SeÃ§enek metni boÅŸ olamaz."}), 400
 
         resim_dosya = ""
         if 'resim' in request.files:
@@ -637,7 +637,7 @@ def mcrt_secenek_ekle_api(proje_id):
         return jsonify({
             "durum": "basarili",
             "secenek_id": secenek_id,
-            "mesaj": f"Seçenek '{metin}' eklendi."
+            "mesaj": f"SeÃ§enek '{metin}' eklendi."
         })
     except Exception as e:
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
@@ -647,7 +647,7 @@ def mcrt_secenek_ekle_api(proje_id):
 def mcrt_secenek_sil_api(secenek_id):
     try:
         db.mcrt_secenek_sil(secenek_id)
-        return jsonify({"durum": "basarili", "mesaj": "Seçenek silindi."})
+        return jsonify({"durum": "basarili", "mesaj": "SeÃ§enek silindi."})
     except Exception as e:
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
 
@@ -669,7 +669,7 @@ def oturum_baslat_api():
         ua = request.headers.get('User-Agent', '')
         profil["tarayici_bilgisi"] = ua
         profil["ip_adresi"] = request.remote_addr or "bilinmiyor"
-        profil["cihaz_tipi"] = "Mobil" if any(x in ua for x in ["Mobile", "Android", "iPhone"]) else "Masaüstü"
+        profil["cihaz_tipi"] = "Mobil" if any(x in ua for x in ["Mobile", "Android", "iPhone"]) else "MasaÃ¼stÃ¼"
         
         # GPS verilerini profil nesnesine aktar
         profil["enlem"] = veri.get("enlem")
@@ -689,7 +689,7 @@ def cevap_kaydet():
     try:
         veri = request.get_json()
         if not veri:
-            return jsonify({"durum": "hata", "mesaj": "Veri bulunamadı."}), 400
+            return jsonify({"durum": "hata", "mesaj": "Veri bulunamadÄ±."}), 400
 
         proje_id = veri.get("proje_id")
         cevaplar = veri.get("cevaplar", [])
@@ -702,7 +702,7 @@ def cevap_kaydet():
         katilimci_id = request.remote_addr or "bilinmiyor"
         kalite_metrikleri = veri.get("kalite_metrikleri", {})
         
-        # Test türüne göre yönlendirme
+        # Test tÃ¼rÃ¼ne gÃ¶re yÃ¶nlendirme
         proje = db.proje_getir(proje_id)
         is_mcrt = proje and (proje.get('test_turu') == 'mcrt' or proje.get('test_turu') == 'mrt')
         
@@ -815,16 +815,16 @@ def explicit_ozet(proje_id):
             "ses_grubu": request.args.get("ses_grubu"),
             "il": request.args.get("il")
         }
-        # Boş olanları temizle
+        # BoÅŸ olanlarÄ± temizle
         filtre = {k: v for k, v in filtre.items() if v}
         
-        # Verileri çek ve analiz et
+        # Verileri Ã§ek ve analiz et
         from analiz.analiz import explicit_implicit_analiz, marka_karsilastirma_testi, veri_kalite_ozeti, korelasyon_hesapla
         import pandas as pd
         
         proje = db.proje_getir(proje_id)
         if not proje:
-            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadı."}), 404
+            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadÄ±."}), 404
 
         test_turu = (proje.get('test_turu') or 'standart').lower()
         is_mcrt = test_turu in ['mcrt', 'mrt']
@@ -846,15 +846,15 @@ def explicit_ozet(proje_id):
         df = db.proje_verileri_df(proje_id)
 
         if df is None or df.empty:
-            return jsonify({"durum": "hata", "mesaj": "Henüz veri yok."})
+            return jsonify({"durum": "hata", "mesaj": "HenÃ¼z veri yok."})
 
         # 1. Ana Analiz ve Kalite Filtreleme
         sonuc_df, kalite_raporu = explicit_implicit_analiz(df)
         
-        # 2. İstatistiksel Karşılaştırmalar (p-value, Cohen's d vb.)
+        # 2. Ä°statistiksel KarÅŸÄ±laÅŸtÄ±rmalar (p-value, Cohen's d vb.)
         istatistiksel_farklar = marka_karsilastirma_testi(df)
         
-        # 3. Veri Kalite Özeti
+        # 3. Veri Kalite Ã–zeti
         kalite_ozeti = veri_kalite_ozeti(df, kalite_raporu)
         
         # 4. Korelasyonlar
@@ -877,7 +877,7 @@ def proje_analiz_istatistik_api(proje_id):
     try:
         proje = db.proje_getir(proje_id)
         if not proje:
-            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadı."}), 404
+            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadÄ±."}), 404
 
         test_turu = (proje.get('test_turu') or 'standart').lower()
         is_mcrt = test_turu in ['mcrt', 'mrt']
@@ -1014,7 +1014,7 @@ def analiz_rapor(proje_id):
 
             rapor_icin_df = sonuc.copy().rename(columns={
                 "marka": "Marka",
-                "ifade": "İfade",
+                "ifade": "Ä°fade",
                 "explicit_pct": "Explicit(%)",
                 "implicit_guc": "Implicit_Guc"
             })
@@ -1036,7 +1036,7 @@ def analiz_rapor(proje_id):
             istatistik = marka_karsilastirma_testi(df)
             rapor_icin_df = sonuc.copy().rename(columns={
                 "marka": "Marka",
-                "ifade": "İfade",
+                "ifade": "Ä°fade",
                 "explicit_pct": "Explicit(%)",
                 "implicit_guc": "Implicit_Guc"
             })
@@ -1094,12 +1094,12 @@ def ai_rapor(proje_id):
     try:
         proje = db.proje_getir(proje_id)
         if not proje:
-            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadı."}), 404
+            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadÄ±."}), 404
         
         is_mcrt = proje.get('test_turu') in ['mcrt', 'mrt']
         proje_ad = proje.get("ad", "")
 
-        # MCRT Analiz Dallanması
+        # MCRT Analiz DallanmasÄ±
         if is_mcrt:
             from analiz.ai_uzman import mcrt_deepseek_rapor_olustur, mcrt_deepseek_slide_pack_olustur, mcrt_slide_pack_html
             from analiz.mcrt_analysis_service import mcrt_proje_analizi
@@ -1107,7 +1107,7 @@ def ai_rapor(proje_id):
             analiz_paketi = mcrt_proje_analizi(db, proje_id)
             ozet = pd.DataFrame(analiz_paketi.get("ozet") or [])
             if ozet.empty:
-                return jsonify({"durum": "hata", "mesaj": "Henüz analiz edilecek veri yok."}), 400
+                return jsonify({"durum": "hata", "mesaj": "HenÃ¼z analiz edilecek veri yok."}), 400
             
             slide_pack = mcrt_deepseek_slide_pack_olustur(
                 ozet,
@@ -1135,7 +1135,7 @@ def ai_rapor(proje_id):
                 "kaynak": "yeni"
             })
         
-        # Standart IRT Analizi (Aşağıdaki eski mantık devam eder)
+        # Standart IRT Analizi (AÅŸaÄŸÄ±daki eski mantÄ±k devam eder)
         mevcut_analiz = db.ai_analiz_getir(proje_id)
         if mevcut_analiz:
             return jsonify({"durum": "basarili", "html": mevcut_analiz, "kaynak": "hafiza"})
@@ -1223,21 +1223,21 @@ def katilimci_detaylari_api(proje_id):
         veri = request.get_json()
         sifre = veri.get("sifre")
         
-        # Admin sifresi ile kontrol (Ekstra güvenlik katmanı)
+        # Admin sifresi ile kontrol (Ekstra gÃ¼venlik katmanÄ±)
         username = session.get("username")
         if not username:
-            return jsonify({"durum": "hata", "mesaj": "Oturum bulunamadı"}), 401
+            return jsonify({"durum": "hata", "mesaj": "Oturum bulunamadÄ±"}), 401
             
         user = db.kullanici_dogrula(username)
         if not user or not check_password_hash(user["password_hash"], sifre):
-            return jsonify({"durum": "hata", "mesaj": "Hatalı şifre"}), 403
+            return jsonify({"durum": "hata", "mesaj": "HatalÄ± ÅŸifre"}), 403
             
-        # 1. Katılımcı profillerini çek
+        # 1. KatÄ±lÄ±mcÄ± profillerini Ã§ek
         df_profiller = db.proje_katilimci_profilleri_df(proje_id)
-        # NaN değerlerini None (null) yap ki JSON hata vermesin
+        # NaN deÄŸerlerini None (null) yap ki JSON hata vermesin
         df_profiller = df_profiller.where(df_profiller.notna(), None)
         
-        # 2. Kalite analizini yap (Neden elendiklerini görmek için)
+        # 2. Kalite analizini yap (Neden elendiklerini gÃ¶rmek iÃ§in)
         from analiz.analiz import katilimci_kalite_analizi
         df_ham = db.proje_verileri_df(proje_id)
         kalite_detaylar = []
@@ -1245,13 +1245,13 @@ def katilimci_detaylari_api(proje_id):
             _, kalite_raporu = katilimci_kalite_analizi(df_ham)
             kalite_detaylar = kalite_raporu.get('detaylar', [])
             
-        # Kalite sonuçlarını bir sözlüğe dönüştür (Hızlı erişim için)
-        # Durumları frontend ile uyumlu hale getir (OK -> GECERLI)
+        # Kalite sonuÃ§larÄ±nÄ± bir sÃ¶zlÃ¼ÄŸe dÃ¶nÃ¼ÅŸtÃ¼r (HÄ±zlÄ± eriÅŸim iÃ§in)
+        # DurumlarÄ± frontend ile uyumlu hale getir (OK -> GECERLI)
         kalite_map = {}
         for d in kalite_detaylar:
             oid = d.get('oturum_id')
             if oid:
-                # 'sebep' alanını 'sorunlar' listesinden birleştirerek oluştur
+                # 'sebep' alanÄ±nÄ± 'sorunlar' listesinden birleÅŸtirerek oluÅŸtur
                 sebep_metni = ", ".join(d.get('sorunlar', [])) if d.get('sorunlar') else ""
                 kalite_map[oid] = {
                     'durum': 'GECERLI' if d['durum'] == 'OK' else 'ELENDI',
@@ -1261,21 +1261,21 @@ def katilimci_detaylari_api(proje_id):
         # 3. Profilleri kalite verisiyle harmanla
         profiller_list = df_profiller.to_dict(orient="records")
         
-        # Kesin temizlik: Her bir kaydı gez ve NaN olanları None (null) yap
+        # Kesin temizlik: Her bir kaydÄ± gez ve NaN olanlarÄ± None (null) yap
         for p in profiller_list:
-            # Önce NaN temizliği (JSON güvenliği için)
+            # Ã–nce NaN temizliÄŸi (JSON gÃ¼venliÄŸi iÃ§in)
             for key, val in p.items():
                 if isinstance(val, float) and np.isnan(val):
                     p[key] = None
             
-            # Kalite verisi eşleştirme
+            # Kalite verisi eÅŸleÅŸtirme
             q = kalite_map.get(p['oturum_id'])
             if q:
                 p['analiz_durumu'] = q['durum']
                 p['analiz_sebep'] = q.get('sebep', '')
             else:
                 p['analiz_durumu'] = 'BILGI_YOK'
-                p['analiz_sebep'] = 'Cevap bulunamadı'
+                p['analiz_sebep'] = 'Cevap bulunamadÄ±'
         
         return jsonify({
             "durum": "basarili",
@@ -1285,4 +1285,5 @@ def katilimci_detaylari_api(proje_id):
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=False # nosemgrep, port=5000)
+

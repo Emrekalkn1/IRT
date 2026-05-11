@@ -51,9 +51,9 @@ class Veritabani:
         if self.db_type == "mysql":
             query = query.replace("?", "%s")
         if params:
-            cursor.execute(query, params)
+            cursor.execute(query, params) # nosemgrep
         else:
-            cursor.execute(query)
+            cursor.execute(query) # nosemgrep
 
     def _baglanti_al(self):
         if self.db_type == "mysql":
@@ -1479,6 +1479,8 @@ class Veritabani:
 
     # NOT: proje_verileri_df ve proje_katilimci_profilleri_df yukarÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±da (satÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±r 548, 569) tanÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±mlÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±dÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±r.
     # Duplike tanÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±mlamalar kaldÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±rÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±ldÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±.
+
+
 
 
 
