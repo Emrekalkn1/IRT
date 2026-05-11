@@ -28,3 +28,10 @@ anket_sistemi/__pycache__/
 anket_sistemi/scratch/
 anket_sistemi/backend/scratch/
 anket_sistemi/output/
+
+# Sunucu yapılandırma dosyaları (hassas bilgi içerir)
+anket_sistemi/scratch_nginx_anket.conf
+*.conf
+
+# Semgrep sonuçları
+semgrep_results.txt

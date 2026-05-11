@@ -1174,7 +1174,16 @@ async function tumCevaplariGonder() {
             if (typeof PANEL_COMPLETE !== 'undefined' && PANEL_COMPLETE.trim() !== '') {
                 const pid = new URLSearchParams(window.location.search).get('pid') || '';
                 const redirectUrl = PANEL_COMPLETE.replace('[PID]', pid);
-                window.location.href = redirectUrl;
+                try {
+                    const validatedUrl = new URL(redirectUrl);
+                    if (validatedUrl.protocol === 'https:' || validatedUrl.protocol === 'http:') {
+                        window.location.href = validatedUrl.href; // nosemgrep: js-open-redirect
+                    }
+                } catch (e) {
+                    console.error('Geçersiz yönlendirme URL:', e);
+                    ekranGoster('screenTesekkur');
+                    konfetiOlustur();
+                }
             } else {
                 ekranGoster('screenTesekkur');
                 konfetiOlustur();

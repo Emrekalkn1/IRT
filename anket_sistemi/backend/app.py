@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Marka Algi Anket Sistemi - Flask Uygulamasi
 Proje bazli mimari
@@ -718,7 +718,7 @@ def cevap_kaydet():
         }))
 
         if proje_kod:
-            response.set_cookie(f"anket_{proje_kod}", "1", max_age=30*24*60*60, httponly=True)
+            response.set_cookie(f"anket_{proje_kod}", "1", max_age=30*24*60*60, httponly=True, secure=True, samesite='Lax')
 
         return response
     except Exception as e:
