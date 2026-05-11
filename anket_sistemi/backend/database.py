@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Veritabanı İşlemleri - SQLite / MySQL
-Proje bazlı yeni şema
+VeritabanÄ± Ä°ÅŸlemleri - SQLite / MySQL
+Proje bazlÄ± yeni ÅŸema
 """
 
 import sqlite3
@@ -43,7 +43,7 @@ class Veritabani:
             return conn.cursor()
 
     def _p(self):
-        """Placeholder yardımcısı: MySQL için %s, SQLite için ? döner."""
+        """Placeholder yardÄ±mcÄ±sÄ±: MySQL iÃ§in %s, SQLite iÃ§in ? dÃ¶ner."""
         return "%s" if self.db_type == "mysql" else "?"
 
     def _baglanti_al(self):
@@ -58,8 +58,8 @@ class Veritabani:
                 charset='utf8mb4',
                 collation='utf8mb4_unicode_ci'
             )
-            # MySQL'de dict benzeri erişim için
-            # Cursor'ı fetch ederken dictionary=True kullanacağız
+            # MySQL'de dict benzeri eriÅŸim iÃ§in
+            # Cursor'Ä± fetch ederken dictionary=True kullanacaÄŸÄ±z
             return conn
         else:
             conn = sqlite3.connect(self.db_yolu)
@@ -71,272 +71,25 @@ class Veritabani:
     def _tablolari_olustur(self):
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
-        
-        pk_auto = "INTEGER PRIMARY KEY AUTOINCREMENT" if self.db_type == "sqlite" else "INT AUTO_INCREMENT PRIMARY KEY"
-        txt_type = "TEXT" if self.db_type == "sqlite" else "LONGTEXT"
-
-        c.execute(f"""
-            CREATE TABLE IF NOT EXISTS projeler (
-                id {pk_auto},
-                ad VARCHAR(255) NOT NULL,
-                aciklama {txt_type},
-                durum VARCHAR(50) DEFAULT 'taslak',
-                benzersiz_kod VARCHAR(50) UNIQUE NOT NULL,
-                olusturma_tarihi VARCHAR(50) NOT NULL,
-                katilimci_bilgilendirme {txt_type},
-                alistirma_aktif INTEGER DEFAULT 0,
-                soru_randomize INTEGER DEFAULT 0,
-                hedef_orneklem INTEGER DEFAULT 0,
-                test_turu VARCHAR(50) DEFAULT 'standart',
-                panel_complete_url {txt_type},
-                panel_screenout_url {txt_type},
-                panel_quotafull_url {txt_type},
-                ai_analiz {txt_type},
-                mcrt_kurgu VARCHAR(50) DEFAULT 'cift_blok',
-                mcrt_yerlesim VARCHAR(50) DEFAULT 'grid_standart'
-            )
-        """)
-
-        c.execute(f"""
-            CREATE TABLE IF NOT EXISTS markalar (
-                id {pk_auto},
-                proje_id INTEGER NOT NULL,
-                ad VARCHAR(255) NOT NULL,
-                resim_dosya VARCHAR(255) DEFAULT '',
-                is_noise INTEGER DEFAULT 0,
-                sira INTEGER DEFAULT 0
-            )
-        """)
-
-        # Migration: is_noise kolonu yoksa ekle
-        try:
-            if self.db_type == "sqlite":
-                c.execute("ALTER TABLE markalar ADD COLUMN is_noise INTEGER DEFAULT 0")
-            else:
-                c.execute("ALTER TABLE markalar ADD COLUMN is_noise INT DEFAULT 0")
-            conn.commit()
-        except Exception:
-            pass  # Kolon zaten var olabilir
-
-        # Migration: analiz_etiketi kolonu yoksa ekle
-        try:
-            c.execute("ALTER TABLE markalar ADD COLUMN analiz_etiketi TEXT")
-            conn.commit()
-        except Exception:
-            pass  # Kolon zaten var olabilir
-
-        c.execute(f"""
-            CREATE TABLE IF NOT EXISTS ifadeler (
-                id {pk_auto},
-                proje_id INTEGER NOT NULL,
-                metin {txt_type} NOT NULL,
-                kategori VARCHAR(100) DEFAULT '',
-                resim_dosya VARCHAR(255),
-                sira INTEGER DEFAULT 0
-            )
-        """)
-
-        # Migration: kategori kolonu yoksa ekle
-        try:
-            c.execute("ALTER TABLE ifadeler ADD COLUMN kategori VARCHAR(100) DEFAULT ''")
-            conn.commit()
-        except Exception:
-            pass
-
-        c.execute(f"""
-            CREATE TABLE IF NOT EXISTS cevaplar (
-                id {pk_auto},
-                proje_id INTEGER NOT NULL,
-                katilimci_id VARCHAR(100) NOT NULL,
-                marka_id INTEGER,
-                ifade_id INTEGER,
-                cevap VARCHAR(50) NOT NULL,
-                sure_ms INTEGER NOT NULL,
-                tarih VARCHAR(50) NOT NULL,
-                oturum_id VARCHAR(100) NOT NULL,
-                is_alistirma INTEGER DEFAULT 0,
-                baseline_ms INTEGER DEFAULT 0,
-                dogru_cevap_mi INTEGER
-            )
-        """)
-
-        c.execute(f"""
-            CREATE TABLE IF NOT EXISTS katilimci_profilleri (
-                id {pk_auto},
-                oturum_id VARCHAR(100) UNIQUE NOT NULL,
-                proje_id INTEGER NOT NULL,
-                ad_soyad VARCHAR(255),
-                yas INTEGER,
-                cinsiyet VARCHAR(20),
-                meslek VARCHAR(255),
-                il VARCHAR(100),
-                ilce VARCHAR(100),
-                egitim VARCHAR(100),
-                ev_durumu VARCHAR(100),
-                araba_durumu VARCHAR(100),
-                saglik_durumu VARCHAR(100),
-                ses_grubu VARCHAR(20),
-                cihaz_tipi VARCHAR(255),
-                panel_pid VARCHAR(255),
-                tarih VARCHAR(50),
-                tarayici_bilgisi {txt_type},
-                baslangic_tarihi VARCHAR(50),
-                bitis_tarihi VARCHAR(50),
-                durum VARCHAR(50) DEFAULT 'yarim_kaldi',
-                ip_adresi VARCHAR(100),
-                enlem FLOAT,
-                boylam FLOAT,
-                konum_hassasiyet FLOAT,
-                baglanti_hatasi INTEGER DEFAULT 0,
-                alistirma_hata_sayisi INTEGER DEFAULT 0,
-                alistirma_toplam INTEGER DEFAULT 0,
-                alistirma_hata_orani FLOAT DEFAULT 0,
-                baseline_ms INTEGER DEFAULT 0
-            )
-        """);
-
-        # Migration: Yeni kolonlari ekle
-        for col in ["enlem", "boylam", "konum_hassasiyet"]:
-            try:
-                c.execute(f"ALTER TABLE katilimci_profilleri ADD COLUMN {col} FLOAT")
-                conn.commit()
-            except Exception:
-                pass
-
-        # Migration: ip_adresi kolonu yoksa ekle
-        try:
-            c.execute(f"ALTER TABLE katilimci_profilleri ADD COLUMN ip_adresi VARCHAR(100)")
-            conn.commit()
-        except Exception:
-            pass
-
-        # Migration: durum kolonu yoksa ekle
-        try:
-            c.execute(f"ALTER TABLE katilimci_profilleri ADD COLUMN durum VARCHAR(50) DEFAULT 'yarim_kaldi'")
-            conn.commit()
-        except Exception:
-            pass
-
-        c.execute(f"""
-            CREATE TABLE IF NOT EXISTS katilimci_linkleri (
-                id {pk_auto},
-                proje_id INTEGER NOT NULL,
-                token VARCHAR(100) UNIQUE NOT NULL,
-                kullanildi INTEGER DEFAULT 0,
-                durum VARCHAR(50) DEFAULT 'aktif',
-                kullanim_sayisi INTEGER DEFAULT 0,
-                yeniden_acma_sayisi INTEGER DEFAULT 0,
-                son_oturum_id VARCHAR(100),
-                kullanim_tarihi VARCHAR(50),
-                olusturma_tarihi VARCHAR(50) NOT NULL
-            )
-        """);
-
-        # Migration: katilimci_linkleri yeni kolonlar
-        try:
-            c.execute(f"ALTER TABLE katilimci_linkleri ADD COLUMN durum VARCHAR(50) DEFAULT 'aktif'")
-            conn.commit()
-        except Exception:
-            pass
-        try:
-            c.execute(f"ALTER TABLE katilimci_linkleri ADD COLUMN kullanim_sayisi INTEGER DEFAULT 0")
-            conn.commit()
-        except Exception:
-            pass
-        try:
-            c.execute(f"ALTER TABLE katilimci_linkleri ADD COLUMN yeniden_acma_sayisi INTEGER DEFAULT 0")
-            conn.commit()
-        except Exception:
-            pass
-        try:
-            c.execute(f"ALTER TABLE katilimci_linkleri ADD COLUMN son_oturum_id VARCHAR(100)")
-            conn.commit()
-        except Exception:
-            pass
-        try:
-            c.execute("""
-                UPDATE katilimci_linkleri
-                SET durum='kullanildi'
-                WHERE kullanildi=1
-                  AND (durum IS NULL OR durum='aktif')
-                  AND (son_oturum_id IS NULL OR son_oturum_id='')
-            """)
-            conn.commit()
-        except Exception:
-            pass
-
-        c.execute(f"""
-            CREATE TABLE IF NOT EXISTS kullanicilar (
-                id {pk_auto},
-                username VARCHAR(100) UNIQUE NOT NULL,
-                password_hash VARCHAR(255) NOT NULL,
-                ad_soyad VARCHAR(255),
-                rol VARCHAR(50) DEFAULT 'admin',
-                olusturma_tarihi VARCHAR(50) NOT NULL
-            )
-        """)
-
-        # --- MCRT TABLOLARI ---
-        c.execute(f"""
-            CREATE TABLE IF NOT EXISTS mcrt_secenekler (
-                id {pk_auto},
-                proje_id INTEGER NOT NULL,
-                metin VARCHAR(255) NOT NULL,
-                resim_dosya VARCHAR(255) DEFAULT '',
-                sira INTEGER DEFAULT 0
-            )
-        """)
-
-        c.execute(f"""
-            CREATE TABLE IF NOT EXISTS mcrt_cevaplar (
-                id {pk_auto},
-                proje_id INTEGER NOT NULL,
-                katilimci_id VARCHAR(100) NOT NULL,
-                oturum_id VARCHAR(100) NOT NULL,
-                marka_id INTEGER,
-                ifade_id INTEGER,
-                secilen_secenek_id INTEGER,
-                cevap_metin VARCHAR(255),
-                sure_ms INTEGER NOT NULL,
-                tarih VARCHAR(50) NOT NULL,
-                baseline_ms INTEGER DEFAULT 0,
-                is_alistirma INTEGER DEFAULT 0
-            )
-        """)
-
-        # Migration: mcrt_kurgu kolonu yoksa ekle
-        try:
-            c.execute(f"ALTER TABLE projeler ADD COLUMN mcrt_kurgu VARCHAR(50) DEFAULT 'cift_blok'")
-            conn.commit()
-        except Exception:
-            pass
-
-        # Migration: mcrt_yerlesim kolonu yoksa ekle
-        try:
-            c.execute(f"ALTER TABLE projeler ADD COLUMN mcrt_yerlesim VARCHAR(50) DEFAULT 'grid_standart'")
-            conn.commit()
-        except Exception:
-            pass
-
-        # --- LOGIN ATTEMPTS TABLOSU ---
-        c.execute(f"""
-            CREATE TABLE IF NOT EXISTS login_attempts (
-                id {pk_auto},
-                username VARCHAR(100),
-                ip_address VARCHAR(100),
-                attempts INTEGER DEFAULT 0,
-                last_attempt VARCHAR(50),
-                lockout_until VARCHAR(50)
-            )
-        """)
-
+        if self.db_type == "sqlite":
+            c.execute("CREATE TABLE IF NOT EXISTS projeler (id INTEGER PRIMARY KEY AUTOINCREMENT, ad TEXT, aciklama TEXT, durum TEXT, benzersiz_kod TEXT, olusturma_tarihi TEXT, katilimci_bilgilendirme TEXT, alistirma_aktif INTEGER, soru_randomize INTEGER, hedef_orneklem INTEGER, test_turu TEXT, panel_complete_url TEXT, panel_screenout_url TEXT, panel_quotafull_url TEXT, ai_analiz TEXT, mcrt_kurgu TEXT, mcrt_yerlesim TEXT)")
+            c.execute("CREATE TABLE IF NOT EXISTS markalar (id INTEGER PRIMARY KEY AUTOINCREMENT, proje_id INTEGER, ad TEXT, resim_dosya TEXT, is_noise INTEGER, sira INTEGER, analiz_etiketi TEXT)")
+            c.execute("CREATE TABLE IF NOT EXISTS ifadeler (id INTEGER PRIMARY KEY AUTOINCREMENT, proje_id INTEGER, metin TEXT, kategori TEXT, resim_dosya TEXT, sira INTEGER)")
+            c.execute("CREATE TABLE IF NOT EXISTS cevaplar (id INTEGER PRIMARY KEY AUTOINCREMENT, proje_id INTEGER, katilimci_id TEXT, marka_id INTEGER, ifade_id INTEGER, cevap TEXT, sure_ms INTEGER, tarih TEXT, oturum_id TEXT, is_alistirma INTEGER, baseline_ms INTEGER, dogru_cevap_mi INTEGER)")
+            c.execute("CREATE TABLE IF NOT EXISTS katilimci_profilleri (id INTEGER PRIMARY KEY AUTOINCREMENT, oturum_id TEXT UNIQUE, proje_id INTEGER, ad_soyad TEXT, yas INTEGER, cinsiyet TEXT, meslek TEXT, il TEXT, ilce TEXT, egitim TEXT, ev_durumu TEXT, araba_durumu TEXT, saglik_durumu TEXT, ses_grubu TEXT, cihaz_tipi TEXT, panel_pid TEXT, tarih TEXT, tarayici_bilgisi TEXT, baslangic_tarihi TEXT, bitis_tarihi TEXT, durum TEXT, ip_adresi TEXT, enlem FLOAT, boylam FLOAT, konum_hassasiyet FLOAT, baglanti_hatasi INTEGER, alistirma_hata_sayisi INTEGER, alistirma_toplam INTEGER, alistirma_hata_orani FLOAT, baseline_ms INTEGER)")
+        else:
+            c.execute("CREATE TABLE IF NOT EXISTS projeler (id INT AUTO_INCREMENT PRIMARY KEY, ad VARCHAR(255), aciklama LONGTEXT, durum VARCHAR(50), benzersiz_kod VARCHAR(50) UNIQUE, olusturma_tarihi VARCHAR(50), katilimci_bilgilendirme LONGTEXT, alistirma_aktif INTEGER, soru_randomize INTEGER, hedef_orneklem INTEGER, test_turu VARCHAR(50), panel_complete_url LONGTEXT, panel_screenout_url LONGTEXT, panel_quotafull_url LONGTEXT, ai_analiz LONGTEXT, mcrt_kurgu VARCHAR(50), mcrt_yerlesim VARCHAR(50))")
+            c.execute("CREATE TABLE IF NOT EXISTS markalar (id INT AUTO_INCREMENT PRIMARY KEY, proje_id INTEGER, ad VARCHAR(255), resim_dosya VARCHAR(255), is_noise INT, sira INTEGER, analiz_etiketi TEXT)")
+            c.execute("CREATE TABLE IF NOT EXISTS ifadeler (id INT AUTO_INCREMENT PRIMARY KEY, proje_id INTEGER, metin LONGTEXT, kategori VARCHAR(100), resim_dosya VARCHAR(255), sira INTEGER)")
+            c.execute("CREATE TABLE IF NOT EXISTS cevaplar (id INT AUTO_INCREMENT PRIMARY KEY, proje_id INTEGER, katilimci_id VARCHAR(100), marka_id INTEGER, ifade_id INTEGER, cevap VARCHAR(50), sure_ms INTEGER, tarih VARCHAR(50), oturum_id VARCHAR(100), is_alistirma INTEGER, baseline_ms INTEGER, dogru_cevap_mi INTEGER)")
+            c.execute("CREATE TABLE IF NOT EXISTS katilimci_profilleri (id INT AUTO_INCREMENT PRIMARY KEY, oturum_id VARCHAR(100) UNIQUE, proje_id INTEGER, ad_soyad VARCHAR(255), yas INTEGER, cinsiyet VARCHAR(20), meslek VARCHAR(255), il VARCHAR(100), ilce VARCHAR(100), egitim VARCHAR(100), ev_durumu VARCHAR(100), araba_durumu VARCHAR(100), saglik_durumu VARCHAR(100), ses_grubu VARCHAR(20), cihaz_tipi VARCHAR(255), panel_pid VARCHAR(255), tarih VARCHAR(50), tarayici_bilgisi LONGTEXT, baslangic_tarihi VARCHAR(50), bitis_tarihi VARCHAR(50), durum VARCHAR(50), ip_adresi VARCHAR(100), enlem FLOAT, boylam FLOAT, konum_hassasiyet FLOAT, baglanti_hatasi INTEGER, alistirma_hata_sayisi INTEGER, alistirma_toplam INTEGER, alistirma_hata_orani FLOAT, baseline_ms INTEGER)")
+        c.execute("CREATE TABLE IF NOT EXISTS katilimci_linkleri (id INTEGER PRIMARY KEY AUTOINCREMENT, proje_id INTEGER, token TEXT UNIQUE, kullanildi INTEGER, durum TEXT, kullanim_sayisi INTEGER, yeniden_acma_sayisi INTEGER, son_oturum_id TEXT, kullanim_tarihi TEXT, olusturma_tarihi TEXT)") if self.db_type == "sqlite" else c.execute("CREATE TABLE IF NOT EXISTS katilimci_linkleri (id INT AUTO_INCREMENT PRIMARY KEY, proje_id INTEGER, token VARCHAR(100) UNIQUE, kullanildi INTEGER, durum VARCHAR(50), kullanim_sayisi INTEGER, yeniden_acma_sayisi INTEGER, son_oturum_id VARCHAR(100), kullanim_tarihi VARCHAR(50), olusturma_tarihi VARCHAR(50))")
+        c.execute("CREATE TABLE IF NOT EXISTS kullanicilar (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password_hash TEXT, ad_soyad TEXT, rol TEXT, olusturma_tarihi TEXT)") if self.db_type == "sqlite" else c.execute("CREATE TABLE IF NOT EXISTS kullanicilar (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(100) UNIQUE, password_hash VARCHAR(255), ad_soyad VARCHAR(255), rol VARCHAR(50), olusturma_tarihi VARCHAR(50))")
+        c.execute("CREATE TABLE IF NOT EXISTS mcrt_secenekler (id INTEGER PRIMARY KEY AUTOINCREMENT, proje_id INTEGER, metin TEXT, resim_dosya TEXT, sira INTEGER)") if self.db_type == "sqlite" else c.execute("CREATE TABLE IF NOT EXISTS mcrt_secenekler (id INT AUTO_INCREMENT PRIMARY KEY, proje_id INTEGER, metin VARCHAR(255), resim_dosya VARCHAR(255), sira INTEGER)")
+        c.execute("CREATE TABLE IF NOT EXISTS mcrt_cevaplar (id INTEGER PRIMARY KEY AUTOINCREMENT, proje_id INTEGER, katilimci_id TEXT, oturum_id TEXT, marka_id INTEGER, ifade_id INTEGER, secilen_secenek_id INTEGER, cevap_metin TEXT, sure_ms INTEGER, tarih TEXT, baseline_ms INTEGER, is_alistirma INTEGER)") if self.db_type == "sqlite" else c.execute("CREATE TABLE IF NOT EXISTS mcrt_cevaplar (id INT AUTO_INCREMENT PRIMARY KEY, proje_id INTEGER, katilimci_id VARCHAR(100), oturum_id VARCHAR(100), marka_id INTEGER, ifade_id INTEGER, secilen_secenek_id INTEGER, cevap_metin VARCHAR(255), sure_ms INTEGER, tarih VARCHAR(50), baseline_ms INTEGER, is_alistirma INTEGER)")
+        c.execute("CREATE TABLE IF NOT EXISTS login_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, ip_address TEXT, attempts INTEGER, last_attempt TEXT, lockout_until TEXT)") if self.db_type == "sqlite" else c.execute("CREATE TABLE IF NOT EXISTS login_attempts (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(100), ip_address VARCHAR(100), attempts INTEGER, last_attempt VARCHAR(50), lockout_until VARCHAR(50))")
         conn.commit()
         conn.close()
-
-    # ========================
-    # KULLANICI / AUTH
-    # ========================
-
     def kullanici_olustur(self, username, password_hash, ad_soyad="", rol="admin"):
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
@@ -371,7 +124,7 @@ class Veritabani:
         p = self._p()
         tarih_simdi = datetime.now().isoformat()
         
-        # Kullanıcı adı veya IP bazlı kontrol
+        # KullanÄ±cÄ± adÄ± veya IP bazlÄ± kontrol
         c.execute(f"""
             SELECT * FROM login_attempts 
             WHERE (username={p} OR ip_address={p}) 
@@ -393,10 +146,10 @@ class Veritabani:
         tarih_simdi = datetime.now().isoformat()
         
         if success:
-            # Başarılı girişte denemeleri sıfırla
+            # BaÅŸarÄ±lÄ± giriÅŸte denemeleri sÄ±fÄ±rla
             c.execute(f"DELETE FROM login_attempts WHERE username={p} OR ip_address={p}", (username, ip))
         else:
-            # Başarısız girişte artır
+            # BaÅŸarÄ±sÄ±z giriÅŸte artÄ±r
             c.execute(f"SELECT * FROM login_attempts WHERE username={p} OR ip_address={p} LIMIT 1", (username, ip))
             row = c.fetchone()
             
@@ -685,7 +438,7 @@ class Veritabani:
         else:
             c.execute(f"UPDATE katilimci_profilleri SET durum='tamamlandi', bitis_tarihi={p} WHERE oturum_id={p}", (tarih, oturum_id))
 
-        # 2. Cevapları kaydet
+        # 2. CevaplarÄ± kaydet
         for item in cevap_listesi:
             # dogru_cevap_mi null ise SQLite'a None olarak gitsin
             dogru_mi = item.get("dogru_cevap_mi")
@@ -806,7 +559,7 @@ class Veritabani:
         return len(cevap_listesi)
 
     # ========================
-    # PROJE VERİ ve İSTATİSTİK
+    # PROJE VERÄ° ve Ä°STATÄ°STÄ°K
     # ========================
 
     def proje_verileri(self, proje_id, marka_id=None):
@@ -837,7 +590,7 @@ class Veritabani:
     def proje_mcrt_verileri_df(self, proje_id):
         conn = self._baglanti_al()
         p = self._p()
-        # MCRT verilerini (mcrt_cevaplar tablosundan) çek
+        # MCRT verilerini (mcrt_cevaplar tablosundan) Ã§ek
         query = f"""
             SELECT c.id, c.oturum_id, c.katilimci_id,
                    c.marka_id, c.ifade_id,
@@ -861,7 +614,7 @@ class Veritabani:
     def proje_verileri_df(self, proje_id):
         conn = self._baglanti_al()
         p = self._p()
-        # Tüm verileri çek (Filtreleme analiz modülünde yapılacak)
+        # TÃ¼m verileri Ã§ek (Filtreleme analiz modÃ¼lÃ¼nde yapÄ±lacak)
         query = f"""
             SELECT c.id, c.oturum_id, c.katilimci_id,
                    COALESCE(m.analiz_etiketi, m.ad) as marka,
@@ -929,7 +682,7 @@ class Veritabani:
                 ozetler.append({
                     "oturum_id": oid,
                     "pid": str(oid)[:8],
-                    "ad_soyad": r['ad_soyad'] or "İsimsiz",
+                    "ad_soyad": r['ad_soyad'] or "Ä°simsiz",
                     "yas": r['yas'] or 0,
                     "cinsiyet": r['cinsiyet'] or "-",
                     "ses": r['ses'] or "-",
@@ -976,7 +729,7 @@ class Veritabani:
                 ozetler.append({
                     "oturum_id": oid,
                     "pid": str(oid)[:8],
-                    "ad_soyad": r['ad_soyad'] or "Ä°simsiz",
+                    "ad_soyad": r['ad_soyad'] or "Ã„Â°simsiz",
                     "yas": r['yas'] or 0,
                     "cinsiyet": r['cinsiyet'] or "-",
                     "ses": r['ses'] or "-",
@@ -1561,7 +1314,7 @@ class Veritabani:
                    SUM(CASE WHEN c.cevap='Evet' THEN 1 ELSE 0 END) as evet_sayisi,
                    AVG(c.sure_ms) as ort_sure,
                    AVG(CASE WHEN c.cevap='Evet' THEN c.sure_ms END) as evet_sure,
-                   AVG(CASE WHEN c.cevap='Hayır' THEN c.sure_ms END) as hayir_sure,
+                   AVG(CASE WHEN c.cevap='HayÄ±r' THEN c.sure_ms END) as hayir_sure,
                    AVG(
                      CASE 
                         WHEN (50 + (((CASE WHEN c.baseline_ms > 0 THEN c.baseline_ms ELSE 1000 END) - c.sure_ms) / 10)) > 100 THEN 100
@@ -1715,5 +1468,5 @@ class Veritabani:
         conn.commit()
         conn.close()
 
-    # NOT: proje_verileri_df ve proje_katilimci_profilleri_df yukarıda (satır 548, 569) tanımlıdır.
-    # Duplike tanımlamalar kaldırıldı.
+    # NOT: proje_verileri_df ve proje_katilimci_profilleri_df yukarÄ±da (satÄ±r 548, 569) tanÄ±mlÄ±dÄ±r.
+    # Duplike tanÄ±mlamalar kaldÄ±rÄ±ldÄ±.
