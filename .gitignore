@@ -21,8 +21,9 @@ scratch/
 
 # Anket sistemi içindeki gereksizler
 anket_sistemi/guncelle.bat
-anket_sistemi/anket.db
-anket_sistemi/.env
+anket_sistemi/.env*
+anket_sistemi/*.db
+anket_sistemi/ai_debug.log
 anket_sistemi/server_error.log
 anket_sistemi/__pycache__/
 anket_sistemi/scratch/
