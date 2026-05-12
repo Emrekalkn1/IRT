@@ -63,3 +63,31 @@ jobs:
           curl -fsSL https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o osv-scanner
           chmod +x osv-scanner
           ./osv-scanner -r anket_sistemi || true
+
+  deploy:
+    name: Enterprise Deployment (VPS)
+    needs: [gitleaks, semgrep, codeql, dependency-check]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /root/anket_sistemi
+            git fetch origin master
+            git reset --hard origin/master
+            
+            # .env dosyasını GitHub Secrets'tan gelen verilerle güncelle
+            # Not: Bu adım mevcut .env dosyasını GitHub'daki güvenli versiyonla değiştirir.
+            cat <<EOF > .env
+            ${{ secrets.ENV_CONTENT }}
+            EOF
+            
+            # Bağımlılıkları güncelle ve servisi yeniden başlat
+            ./venv/bin/pip install -r anket_sistemi/requirements.txt
+            systemctl restart anket
+            systemctl restart nginx
