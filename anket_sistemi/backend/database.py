@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 """
-VeritabanÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â± ÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€¦Ã‚Â¸lemleri - SQLite / MySQL
-Proje bazlÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â± yeni ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€¦Ã‚Â¸ema
+Veritaban─▒ ─░┼ƒlemleri - SQLite / MySQL
+Proje bazl─▒ yeni ┼ƒema
 """
 
 import sqlite3
@@ -43,17 +43,8 @@ class Veritabani:
             return conn.cursor()
 
     def _p(self):
-        """Placeholder yardÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±mcÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±sÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±: MySQL iÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§in %s, SQLite iÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§in ? dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¶ner."""
+        """Placeholder yard─▒mc─▒s─▒: MySQL i├ºin %s, SQLite i├ºin ? d├╢ner."""
         return "%s" if self.db_type == "mysql" else "?"
-
-    def safe_execute(self, cursor, query, params=None):
-        """Semgrep uyumlu gÃƒÂ¼venli sorgu ÃƒÂ§alÃ„Â±Ã…Å¸tÃ„Â±rÃ„Â±cÃ„Â±."""
-        if self.db_type == "mysql":
-            query = query.replace("?", "%s")
-        if params:
-            cursor.execute(query, params) # nosemgrep
-        else:
-            cursor.execute(query) # nosemgrep
 
     def _baglanti_al(self):
         if self.db_type == "mysql":
@@ -67,8 +58,8 @@ class Veritabani:
                 charset='utf8mb4',
                 collation='utf8mb4_unicode_ci'
             )
-            # MySQL'de dict benzeri eriÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€¦Ã‚Â¸im iÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§in
-            # Cursor'ÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â± fetch ederken dictionary=True kullanacaÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€¦Ã‚Â¸ÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±z
+            # MySQL'de dict benzeri eri┼ƒim i├ºin
+            # Cursor'─▒ fetch ederken dictionary=True kullanaca─ƒ─▒z
             return conn
         else:
             conn = sqlite3.connect(self.db_yolu)
@@ -80,33 +71,280 @@ class Veritabani:
     def _tablolari_olustur(self):
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
-        if self.db_type == "sqlite":
-            self.safe_execute(c, "CREATE TABLE IF NOT EXISTS projeler (id INTEGER PRIMARY KEY AUTOINCREMENT, ad TEXT, aciklama TEXT, durum TEXT, benzersiz_kod TEXT, olusturma_tarihi TEXT, katilimci_bilgilendirme TEXT, alistirma_aktif INTEGER, soru_randomize INTEGER, hedef_orneklem INTEGER, test_turu TEXT, panel_complete_url TEXT, panel_screenout_url TEXT, panel_quotafull_url TEXT, ai_analiz TEXT, mcrt_kurgu TEXT, mcrt_yerlesim TEXT)")
-            self.safe_execute(c, "CREATE TABLE IF NOT EXISTS markalar (id INTEGER PRIMARY KEY AUTOINCREMENT, proje_id INTEGER, ad TEXT, resim_dosya TEXT, is_noise INTEGER, sira INTEGER, analiz_etiketi TEXT)")
-            self.safe_execute(c, "CREATE TABLE IF NOT EXISTS ifadeler (id INTEGER PRIMARY KEY AUTOINCREMENT, proje_id INTEGER, metin TEXT, kategori TEXT, resim_dosya TEXT, sira INTEGER)")
-            self.safe_execute(c, "CREATE TABLE IF NOT EXISTS cevaplar (id INTEGER PRIMARY KEY AUTOINCREMENT, proje_id INTEGER, katilimci_id TEXT, marka_id INTEGER, ifade_id INTEGER, cevap TEXT, sure_ms INTEGER, tarih TEXT, oturum_id TEXT, is_alistirma INTEGER, baseline_ms INTEGER, dogru_cevap_mi INTEGER)")
-            self.safe_execute(c, "CREATE TABLE IF NOT EXISTS katilimci_profilleri (id INTEGER PRIMARY KEY AUTOINCREMENT, oturum_id TEXT UNIQUE, proje_id INTEGER, ad_soyad TEXT, yas INTEGER, cinsiyet TEXT, meslek TEXT, il TEXT, ilce TEXT, egitim TEXT, ev_durumu TEXT, araba_durumu TEXT, saglik_durumu TEXT, ses_grubu TEXT, cihaz_tipi TEXT, panel_pid TEXT, tarih TEXT, tarayici_bilgisi TEXT, baslangic_tarihi TEXT, bitis_tarihi TEXT, durum TEXT, ip_adresi TEXT, enlem FLOAT, boylam FLOAT, konum_hassasiyet FLOAT, baglanti_hatasi INTEGER, alistirma_hata_sayisi INTEGER, alistirma_toplam INTEGER, alistirma_hata_orani FLOAT, baseline_ms INTEGER)")
-        else:
-            self.safe_execute(c, "CREATE TABLE IF NOT EXISTS projeler (id INT AUTO_INCREMENT PRIMARY KEY, ad VARCHAR(255), aciklama LONGTEXT, durum VARCHAR(50), benzersiz_kod VARCHAR(50) UNIQUE, olusturma_tarihi VARCHAR(50), katilimci_bilgilendirme LONGTEXT, alistirma_aktif INTEGER, soru_randomize INTEGER, hedef_orneklem INTEGER, test_turu VARCHAR(50), panel_complete_url LONGTEXT, panel_screenout_url LONGTEXT, panel_quotafull_url LONGTEXT, ai_analiz LONGTEXT, mcrt_kurgu VARCHAR(50), mcrt_yerlesim VARCHAR(50))")
-            self.safe_execute(c, "CREATE TABLE IF NOT EXISTS markalar (id INT AUTO_INCREMENT PRIMARY KEY, proje_id INTEGER, ad VARCHAR(255), resim_dosya VARCHAR(255), is_noise INT, sira INTEGER, analiz_etiketi TEXT)")
-            self.safe_execute(c, "CREATE TABLE IF NOT EXISTS ifadeler (id INT AUTO_INCREMENT PRIMARY KEY, proje_id INTEGER, metin LONGTEXT, kategori VARCHAR(100), resim_dosya VARCHAR(255), sira INTEGER)")
-            self.safe_execute(c, "CREATE TABLE IF NOT EXISTS cevaplar (id INT AUTO_INCREMENT PRIMARY KEY, proje_id INTEGER, katilimci_id VARCHAR(100), marka_id INTEGER, ifade_id INTEGER, cevap VARCHAR(50), sure_ms INTEGER, tarih VARCHAR(50), oturum_id VARCHAR(100), is_alistirma INTEGER, baseline_ms INTEGER, dogru_cevap_mi INTEGER)")
-            self.safe_execute(c, "CREATE TABLE IF NOT EXISTS katilimci_profilleri (id INT AUTO_INCREMENT PRIMARY KEY, oturum_id VARCHAR(100) UNIQUE, proje_id INTEGER, ad_soyad VARCHAR(255), yas INTEGER, cinsiyet VARCHAR(20), meslek VARCHAR(255), il VARCHAR(100), ilce VARCHAR(100), egitim VARCHAR(100), ev_durumu VARCHAR(100), araba_durumu VARCHAR(100), saglik_durumu VARCHAR(100), ses_grubu VARCHAR(20), cihaz_tipi VARCHAR(255), panel_pid VARCHAR(255), tarih VARCHAR(50), tarayici_bilgisi LONGTEXT, baslangic_tarihi VARCHAR(50), bitis_tarihi VARCHAR(50), durum VARCHAR(50), ip_adresi VARCHAR(100), enlem FLOAT, boylam FLOAT, konum_hassasiyet FLOAT, baglanti_hatasi INTEGER, alistirma_hata_sayisi INTEGER, alistirma_toplam INTEGER, alistirma_hata_orani FLOAT, baseline_ms INTEGER)")
-        self.safe_execute(c, "CREATE TABLE IF NOT EXISTS katilimci_linkleri (id INTEGER PRIMARY KEY AUTOINCREMENT, proje_id INTEGER, token TEXT UNIQUE, kullanildi INTEGER, durum TEXT, kullanim_sayisi INTEGER, yeniden_acma_sayisi INTEGER, son_oturum_id TEXT, kullanim_tarihi TEXT, olusturma_tarihi TEXT)") if self.db_type == "sqlite" else self.safe_execute(c, "CREATE TABLE IF NOT EXISTS katilimci_linkleri (id INT AUTO_INCREMENT PRIMARY KEY, proje_id INTEGER, token VARCHAR(100) UNIQUE, kullanildi INTEGER, durum VARCHAR(50), kullanim_sayisi INTEGER, yeniden_acma_sayisi INTEGER, son_oturum_id VARCHAR(100), kullanim_tarihi VARCHAR(50), olusturma_tarihi VARCHAR(50))")
-        self.safe_execute(c, "CREATE TABLE IF NOT EXISTS kullanicilar (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password_hash TEXT, ad_soyad TEXT, rol TEXT, olusturma_tarihi TEXT)") if self.db_type == "sqlite" else self.safe_execute(c, "CREATE TABLE IF NOT EXISTS kullanicilar (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(100) UNIQUE, password_hash VARCHAR(255), ad_soyad VARCHAR(255), rol VARCHAR(50), olusturma_tarihi VARCHAR(50))")
-        self.safe_execute(c, "CREATE TABLE IF NOT EXISTS mcrt_secenekler (id INTEGER PRIMARY KEY AUTOINCREMENT, proje_id INTEGER, metin TEXT, resim_dosya TEXT, sira INTEGER)") if self.db_type == "sqlite" else self.safe_execute(c, "CREATE TABLE IF NOT EXISTS mcrt_secenekler (id INT AUTO_INCREMENT PRIMARY KEY, proje_id INTEGER, metin VARCHAR(255), resim_dosya VARCHAR(255), sira INTEGER)")
-        self.safe_execute(c, "CREATE TABLE IF NOT EXISTS mcrt_cevaplar (id INTEGER PRIMARY KEY AUTOINCREMENT, proje_id INTEGER, katilimci_id TEXT, oturum_id TEXT, marka_id INTEGER, ifade_id INTEGER, secilen_secenek_id INTEGER, cevap_metin TEXT, sure_ms INTEGER, tarih TEXT, baseline_ms INTEGER, is_alistirma INTEGER)") if self.db_type == "sqlite" else self.safe_execute(c, "CREATE TABLE IF NOT EXISTS mcrt_cevaplar (id INT AUTO_INCREMENT PRIMARY KEY, proje_id INTEGER, katilimci_id VARCHAR(100), oturum_id VARCHAR(100), marka_id INTEGER, ifade_id INTEGER, secilen_secenek_id INTEGER, cevap_metin VARCHAR(255), sure_ms INTEGER, tarih VARCHAR(50), baseline_ms INTEGER, is_alistirma INTEGER)")
-        self.safe_execute(c, "CREATE TABLE IF NOT EXISTS login_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, ip_address TEXT, attempts INTEGER, last_attempt TEXT, lockout_until TEXT)") if self.db_type == "sqlite" else self.safe_execute(c, "CREATE TABLE IF NOT EXISTS login_attempts (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(100), ip_address VARCHAR(100), attempts INTEGER, last_attempt VARCHAR(50), lockout_until VARCHAR(50))")
+        
+        pk_auto = "INTEGER PRIMARY KEY AUTOINCREMENT" if self.db_type == "sqlite" else "INT AUTO_INCREMENT PRIMARY KEY"
+        txt_type = "TEXT" if self.db_type == "sqlite" else "LONGTEXT"
+
+        c.execute(f"""
+            CREATE TABLE IF NOT EXISTS projeler (
+                id {pk_auto},
+                ad VARCHAR(255) NOT NULL,
+                aciklama {txt_type},
+                durum VARCHAR(50) DEFAULT 'taslak',
+                benzersiz_kod VARCHAR(50) UNIQUE NOT NULL,
+                olusturma_tarihi VARCHAR(50) NOT NULL,
+                katilimci_bilgilendirme {txt_type},
+                alistirma_aktif INTEGER DEFAULT 0,
+                soru_randomize INTEGER DEFAULT 0,
+                hedef_orneklem INTEGER DEFAULT 0,
+                test_turu VARCHAR(50) DEFAULT 'standart',
+                panel_complete_url {txt_type},
+                panel_screenout_url {txt_type},
+                panel_quotafull_url {txt_type},
+                ai_analiz {txt_type},
+                mcrt_kurgu VARCHAR(50) DEFAULT 'cift_blok',
+                mcrt_yerlesim VARCHAR(50) DEFAULT 'grid_standart'
+            )
+        """)
+
+        c.execute(f"""
+            CREATE TABLE IF NOT EXISTS markalar (
+                id {pk_auto},
+                proje_id INTEGER NOT NULL,
+                ad VARCHAR(255) NOT NULL,
+                resim_dosya VARCHAR(255) DEFAULT '',
+                is_noise INTEGER DEFAULT 0,
+                sira INTEGER DEFAULT 0
+            )
+        """)
+
+        # Migration: is_noise kolonu yoksa ekle
+        try:
+            if self.db_type == "sqlite":
+                c.execute("ALTER TABLE markalar ADD COLUMN is_noise INTEGER DEFAULT 0")
+            else:
+                c.execute("ALTER TABLE markalar ADD COLUMN is_noise INT DEFAULT 0")
+            conn.commit()
+        except Exception:
+            pass  # Kolon zaten var olabilir
+
+        # Migration: analiz_etiketi kolonu yoksa ekle
+        try:
+            c.execute("ALTER TABLE markalar ADD COLUMN analiz_etiketi TEXT")
+            conn.commit()
+        except Exception:
+            pass  # Kolon zaten var olabilir
+
+        c.execute(f"""
+            CREATE TABLE IF NOT EXISTS ifadeler (
+                id {pk_auto},
+                proje_id INTEGER NOT NULL,
+                metin {txt_type} NOT NULL,
+                kategori VARCHAR(100) DEFAULT '',
+                resim_dosya VARCHAR(255),
+                sira INTEGER DEFAULT 0
+            )
+        """)
+
+        # Migration: kategori kolonu yoksa ekle
+        try:
+            c.execute("ALTER TABLE ifadeler ADD COLUMN kategori VARCHAR(100) DEFAULT ''")
+            conn.commit()
+        except Exception:
+            pass
+
+        c.execute(f"""
+            CREATE TABLE IF NOT EXISTS cevaplar (
+                id {pk_auto},
+                proje_id INTEGER NOT NULL,
+                katilimci_id VARCHAR(100) NOT NULL,
+                marka_id INTEGER,
+                ifade_id INTEGER,
+                cevap VARCHAR(50) NOT NULL,
+                sure_ms INTEGER NOT NULL,
+                tarih VARCHAR(50) NOT NULL,
+                oturum_id VARCHAR(100) NOT NULL,
+                is_alistirma INTEGER DEFAULT 0,
+                baseline_ms INTEGER DEFAULT 0,
+                dogru_cevap_mi INTEGER
+            )
+        """)
+
+        c.execute(f"""
+            CREATE TABLE IF NOT EXISTS katilimci_profilleri (
+                id {pk_auto},
+                oturum_id VARCHAR(100) UNIQUE NOT NULL,
+                proje_id INTEGER NOT NULL,
+                ad_soyad VARCHAR(255),
+                yas INTEGER,
+                cinsiyet VARCHAR(20),
+                meslek VARCHAR(255),
+                il VARCHAR(100),
+                ilce VARCHAR(100),
+                egitim VARCHAR(100),
+                ev_durumu VARCHAR(100),
+                araba_durumu VARCHAR(100),
+                saglik_durumu VARCHAR(100),
+                ses_grubu VARCHAR(20),
+                cihaz_tipi VARCHAR(255),
+                panel_pid VARCHAR(255),
+                tarih VARCHAR(50),
+                tarayici_bilgisi {txt_type},
+                baslangic_tarihi VARCHAR(50),
+                bitis_tarihi VARCHAR(50),
+                durum VARCHAR(50) DEFAULT 'yarim_kaldi',
+                ip_adresi VARCHAR(100),
+                enlem FLOAT,
+                boylam FLOAT,
+                konum_hassasiyet FLOAT,
+                baglanti_hatasi INTEGER DEFAULT 0,
+                alistirma_hata_sayisi INTEGER DEFAULT 0,
+                alistirma_toplam INTEGER DEFAULT 0,
+                alistirma_hata_orani FLOAT DEFAULT 0,
+                baseline_ms INTEGER DEFAULT 0
+            )
+        """);
+
+        # Migration: Yeni kolonlari ekle
+        for col in ["enlem", "boylam", "konum_hassasiyet"]:
+            try:
+                c.execute(f"ALTER TABLE katilimci_profilleri ADD COLUMN {col} FLOAT")
+                conn.commit()
+            except Exception:
+                pass
+
+        # Migration: ip_adresi kolonu yoksa ekle
+        try:
+            c.execute(f"ALTER TABLE katilimci_profilleri ADD COLUMN ip_adresi VARCHAR(100)")
+            conn.commit()
+        except Exception:
+            pass
+
+        # Migration: durum kolonu yoksa ekle
+        try:
+            c.execute(f"ALTER TABLE katilimci_profilleri ADD COLUMN durum VARCHAR(50) DEFAULT 'yarim_kaldi'")
+            conn.commit()
+        except Exception:
+            pass
+
+        c.execute(f"""
+            CREATE TABLE IF NOT EXISTS katilimci_linkleri (
+                id {pk_auto},
+                proje_id INTEGER NOT NULL,
+                token VARCHAR(100) UNIQUE NOT NULL,
+                kullanildi INTEGER DEFAULT 0,
+                durum VARCHAR(50) DEFAULT 'aktif',
+                kullanim_sayisi INTEGER DEFAULT 0,
+                yeniden_acma_sayisi INTEGER DEFAULT 0,
+                son_oturum_id VARCHAR(100),
+                kullanim_tarihi VARCHAR(50),
+                olusturma_tarihi VARCHAR(50) NOT NULL
+            )
+        """);
+
+        # Migration: katilimci_linkleri yeni kolonlar
+        try:
+            c.execute(f"ALTER TABLE katilimci_linkleri ADD COLUMN durum VARCHAR(50) DEFAULT 'aktif'")
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            c.execute(f"ALTER TABLE katilimci_linkleri ADD COLUMN kullanim_sayisi INTEGER DEFAULT 0")
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            c.execute(f"ALTER TABLE katilimci_linkleri ADD COLUMN yeniden_acma_sayisi INTEGER DEFAULT 0")
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            c.execute(f"ALTER TABLE katilimci_linkleri ADD COLUMN son_oturum_id VARCHAR(100)")
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            c.execute("""
+                UPDATE katilimci_linkleri
+                SET durum='kullanildi'
+                WHERE kullanildi=1
+                  AND (durum IS NULL OR durum='aktif')
+                  AND (son_oturum_id IS NULL OR son_oturum_id='')
+            """)
+            conn.commit()
+        except Exception:
+            pass
+
+        c.execute(f"""
+            CREATE TABLE IF NOT EXISTS kullanicilar (
+                id {pk_auto},
+                username VARCHAR(100) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                ad_soyad VARCHAR(255),
+                rol VARCHAR(50) DEFAULT 'admin',
+                olusturma_tarihi VARCHAR(50) NOT NULL
+            )
+        """)
+
+        # --- MCRT TABLOLARI ---
+        c.execute(f"""
+            CREATE TABLE IF NOT EXISTS mcrt_secenekler (
+                id {pk_auto},
+                proje_id INTEGER NOT NULL,
+                metin VARCHAR(255) NOT NULL,
+                resim_dosya VARCHAR(255) DEFAULT '',
+                sira INTEGER DEFAULT 0
+            )
+        """)
+
+        c.execute(f"""
+            CREATE TABLE IF NOT EXISTS mcrt_cevaplar (
+                id {pk_auto},
+                proje_id INTEGER NOT NULL,
+                katilimci_id VARCHAR(100) NOT NULL,
+                oturum_id VARCHAR(100) NOT NULL,
+                marka_id INTEGER,
+                ifade_id INTEGER,
+                secilen_secenek_id INTEGER,
+                cevap_metin VARCHAR(255),
+                sure_ms INTEGER NOT NULL,
+                tarih VARCHAR(50) NOT NULL,
+                baseline_ms INTEGER DEFAULT 0,
+                is_alistirma INTEGER DEFAULT 0
+            )
+        """)
+
+        # Migration: mcrt_kurgu kolonu yoksa ekle
+        try:
+            c.execute(f"ALTER TABLE projeler ADD COLUMN mcrt_kurgu VARCHAR(50) DEFAULT 'cift_blok'")
+            conn.commit()
+        except Exception:
+            pass
+
+        # Migration: mcrt_yerlesim kolonu yoksa ekle
+        try:
+            c.execute(f"ALTER TABLE projeler ADD COLUMN mcrt_yerlesim VARCHAR(50) DEFAULT 'grid_standart'")
+            conn.commit()
+        except Exception:
+            pass
+
+        # --- LOGIN ATTEMPTS TABLOSU ---
+        c.execute(f"""
+            CREATE TABLE IF NOT EXISTS login_attempts (
+                id {pk_auto},
+                username VARCHAR(100),
+                ip_address VARCHAR(100),
+                attempts INTEGER DEFAULT 0,
+                last_attempt VARCHAR(50),
+                lockout_until VARCHAR(50)
+            )
+        """)
+
         conn.commit()
         conn.close()
+
+    # ========================
+    # KULLANICI / AUTH
+    # ========================
+
     def kullanici_olustur(self, username, password_hash, ad_soyad="", rol="admin"):
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         tarih = datetime.now().isoformat()
         p = self._p()
         try:
-            self.safe_execute(c, 
-                "INSERT INTO kullanicilar (username, password_hash, ad_soyad, rol, olusturma_tarihi) VALUES (?,?,?,?,?)",
+            c.execute(
+                f"INSERT INTO kullanicilar (username, password_hash, ad_soyad, rol, olusturma_tarihi) VALUES ({p},{p},{p},{p},{p})",
                 (username, password_hash, ad_soyad, rol, tarih)
             )
             conn.commit()
@@ -120,7 +358,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "SELECT * FROM kullanicilar WHERE username=?", (username,))
+        c.execute(f"SELECT * FROM kullanicilar WHERE username={p}", (username,))
         row = c.fetchone()
         conn.close()
         return dict(row) if row else None
@@ -133,11 +371,11 @@ class Veritabani:
         p = self._p()
         tarih_simdi = datetime.now().isoformat()
         
-        # KullanÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±cÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â± adÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â± veya IP bazlÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â± kontrol
-        self.safe_execute(c, """
+        # Kullan─▒c─▒ ad─▒ veya IP bazl─▒ kontrol
+        c.execute(f"""
             SELECT * FROM login_attempts 
-            WHERE (username=? OR ip_address=?) 
-            AND lockout_until > ?
+            WHERE (username={p} OR ip_address={p}) 
+            AND lockout_until > {p}
             LIMIT 1
         """, (username, ip, tarih_simdi))
         
@@ -155,11 +393,11 @@ class Veritabani:
         tarih_simdi = datetime.now().isoformat()
         
         if success:
-            # BaÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€¦Ã‚Â¸arÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±lÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â± giriÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€¦Ã‚Â¸te denemeleri sÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±fÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±rla
-            self.safe_execute(c, "DELETE FROM login_attempts WHERE username=? OR ip_address=?", (username, ip))
+            # Ba┼ƒar─▒l─▒ giri┼ƒte denemeleri s─▒f─▒rla
+            c.execute(f"DELETE FROM login_attempts WHERE username={p} OR ip_address={p}", (username, ip))
         else:
-            # BaÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€¦Ã‚Â¸arÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±sÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±z giriÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€¦Ã‚Â¸te artÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±r
-            self.safe_execute(c, "SELECT * FROM login_attempts WHERE username=? OR ip_address=? LIMIT 1", (username, ip))
+            # Ba┼ƒar─▒s─▒z giri┼ƒte art─▒r
+            c.execute(f"SELECT * FROM login_attempts WHERE username={p} OR ip_address={p} LIMIT 1", (username, ip))
             row = c.fetchone()
             
             if row:
@@ -171,15 +409,15 @@ class Veritabani:
                     from datetime import timedelta
                     lockout_until = (datetime.now() + timedelta(minutes=15)).isoformat()
                 
-                self.safe_execute(c, """
+                c.execute(f"""
                     UPDATE login_attempts 
-                    SET attempts=?, last_attempt=?, lockout_until=? 
-                    WHERE id=?
+                    SET attempts={p}, last_attempt={p}, lockout_until={p} 
+                    WHERE id={p}
                 """, (attempts, tarih_simdi, lockout_until, row['id']))
             else:
-                self.safe_execute(c, """
+                c.execute(f"""
                     INSERT INTO login_attempts (username, ip_address, attempts, last_attempt) 
-                    VALUES (?, ?, 1, ?)
+                    VALUES ({p}, {p}, 1, {p})
                 """, (username, ip, tarih_simdi))
         
         conn.commit()
@@ -195,8 +433,8 @@ class Veritabani:
         kod = uuid.uuid4().hex[:8]
         tarih = datetime.now().isoformat()
         p = self._p()
-        self.safe_execute(c, 
-            f"INSERT INTO projeler (ad, aciklama, durum, benzersiz_kod, olusturma_tarihi, katilimci_bilgilendirme, soru_randomize) VALUES (?,?,?,?,?,?,?)",
+        c.execute(
+            f"INSERT INTO projeler (ad, aciklama, durum, benzersiz_kod, olusturma_tarihi, katilimci_bilgilendirme, soru_randomize) VALUES ({p},{p},{p},{p},{p},{p},{p})",
             (ad, aciklama, "taslak", kod, tarih, bilgilendirme, 0)
         )
         conn.commit()
@@ -226,7 +464,7 @@ class Veritabani:
 
         for field, value in fields:
             if value is not None:
-                updates.append(f"{field}=?)
+                updates.append(f"{field}={p}")
                 params.append(value)
 
         if not updates:
@@ -235,8 +473,8 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         params.append(proje_id)
-        sorgu = f"UPDATE projeler SET {', '.join(updates)} WHERE id=?
-        self.safe_execute(c, sorgu, params)
+        sorgu = f"UPDATE projeler SET {', '.join(updates)} WHERE id={p}"
+        c.execute(sorgu, params)
         conn.commit()
         conn.close()
 
@@ -244,7 +482,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "UPDATE projeler SET durum=? WHERE id=?, (yeni_durum, proje_id))
+        c.execute(f"UPDATE projeler SET durum={p} WHERE id={p}", (yeni_durum, proje_id))
         conn.commit()
         conn.close()
 
@@ -252,7 +490,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "SELECT * FROM projeler WHERE id=?, (proje_id,))
+        c.execute(f"SELECT * FROM projeler WHERE id={p}", (proje_id,))
         row = c.fetchone()
         conn.close()
         return dict(row) if row else None
@@ -261,7 +499,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "SELECT * FROM projeler WHERE benzersiz_kod=?, (kod,))
+        c.execute(f"SELECT * FROM projeler WHERE benzersiz_kod={p}", (kod,))
         row = c.fetchone()
         conn.close()
         return dict(row) if row else None
@@ -270,10 +508,10 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         if include_archived:
-            self.safe_execute(c, "SELECT * FROM projeler ORDER BY olusturma_tarihi DESC")
+            c.execute("SELECT * FROM projeler ORDER BY olusturma_tarihi DESC")
         else:
             p = self._p()
-            self.safe_execute(c, "SELECT * FROM projeler WHERE durum != ? ORDER BY olusturma_tarihi DESC", ("arsiv",))
+            c.execute(f"SELECT * FROM projeler WHERE durum != {p} ORDER BY olusturma_tarihi DESC", ("arsiv",))
         rows = c.fetchall()
         conn.close()
         return [dict(r) for r in rows]
@@ -282,7 +520,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "DELETE FROM projeler WHERE id=?, (proje_id,))
+        c.execute(f"DELETE FROM projeler WHERE id={p}", (proje_id,))
         conn.commit()
         conn.close()
 
@@ -294,11 +532,11 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "SELECT COALESCE(MAX(sira),0)+1 as sira FROM markalar WHERE proje_id=?, (proje_id,))
+        c.execute(f"SELECT COALESCE(MAX(sira),0)+1 as sira FROM markalar WHERE proje_id={p}", (proje_id,))
         row = c.fetchone()
         sira = row['sira'] if self.db_type == "mysql" else row[0]
-        self.safe_execute(c, 
-            f"INSERT INTO markalar (proje_id, ad, resim_dosya, is_noise, sira, analiz_etiketi) VALUES (?,?,?,?,?,?)",
+        c.execute(
+            f"INSERT INTO markalar (proje_id, ad, resim_dosya, is_noise, sira, analiz_etiketi) VALUES ({p},{p},{p},{p},{p},{p})",
             (proje_id, ad, resim_dosya, 1 if is_noise else 0, sira, analiz_etiketi if analiz_etiketi else None)
         )
         conn.commit()
@@ -310,7 +548,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "DELETE FROM markalar WHERE id=?, (marka_id,))
+        c.execute(f"DELETE FROM markalar WHERE id={p}", (marka_id,))
         conn.commit()
         conn.close()
 
@@ -318,7 +556,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "SELECT * FROM markalar WHERE proje_id=? ORDER BY sira", (proje_id,))
+        c.execute(f"SELECT * FROM markalar WHERE proje_id={p} ORDER BY sira", (proje_id,))
         rows = c.fetchall()
         conn.close()
         return [dict(r) for r in rows]
@@ -331,11 +569,11 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "SELECT COALESCE(MAX(sira),0)+1 as sira FROM ifadeler WHERE proje_id=?, (proje_id,))
+        c.execute(f"SELECT COALESCE(MAX(sira),0)+1 as sira FROM ifadeler WHERE proje_id={p}", (proje_id,))
         row = c.fetchone()
         sira = row['sira'] if self.db_type == "mysql" else row[0]
-        self.safe_execute(c, 
-            f"INSERT INTO ifadeler (proje_id, metin, kategori, resim_dosya, sira) VALUES (?,?,?,?,?)",
+        c.execute(
+            f"INSERT INTO ifadeler (proje_id, metin, kategori, resim_dosya, sira) VALUES ({p},{p},{p},{p},{p})",
             (proje_id, metin, kategori or "", resim_dosya, sira)
         )
         conn.commit()
@@ -347,7 +585,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "DELETE FROM ifadeler WHERE id=?, (ifade_id,))
+        c.execute(f"DELETE FROM ifadeler WHERE id={p}", (ifade_id,))
         conn.commit()
         conn.close()
 
@@ -355,7 +593,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "SELECT * FROM ifadeler WHERE proje_id=? ORDER BY sira", (proje_id,))
+        c.execute(f"SELECT * FROM ifadeler WHERE proje_id={p} ORDER BY sira", (proje_id,))
         rows = c.fetchall()
         conn.close()
         return [dict(r) for r in rows]
@@ -368,7 +606,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "SELECT COUNT(*) as sayi FROM cevaplar WHERE oturum_id=?, (oturum_id,))
+        c.execute(f"SELECT COUNT(*) as sayi FROM cevaplar WHERE oturum_id={p}", (oturum_id,))
         res = c.fetchone()
         sayi = res['sayi'] if self.db_type == "mysql" else res[0]
         conn.close()
@@ -382,14 +620,14 @@ class Veritabani:
         
         # 1. Linki Yak (Token varsa)
         if token:
-            self.safe_execute(c, 
+            c.execute(
                 f"""UPDATE katilimci_linkleri
                     SET kullanildi=1,
-                        kullanim_tarihi=?,
+                        kullanim_tarihi={p},
                         durum='basladi',
                         kullanim_sayisi=COALESCE(kullanim_sayisi, 0) + 1,
-                        son_oturum_id=?
-                    WHERE token=? AND proje_id=? AND kullanildi=0""",
+                        son_oturum_id={p}
+                    WHERE token={p} AND proje_id={p} AND kullanildi=0""",
                 (tarih, oturum_id, token, proje_id)
             )
             if c.rowcount != 1:
@@ -398,10 +636,10 @@ class Veritabani:
                 raise ValueError("Gecersiz veya daha once kullanilmis katilimci tokeni.")
             
         # 2. Profili 'yarim_kaldi' olarak baslat
-        self.safe_execute(c, """
+        c.execute(f"""
             INSERT INTO katilimci_profilleri 
             (oturum_id, proje_id, ad_soyad, yas, cinsiyet, meslek, egitim, ev_durumu, araba_durumu, saglik_durumu, il, ilce, ses_grubu, tarih, cihaz_tipi, panel_pid, tarayici_bilgisi, baslangic_tarihi, durum, ip_adresi, enlem, boylam, konum_hassasiyet)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p})
         """, (
             oturum_id, proje_id, 
             profil_verisi.get("ad_soyad"), profil_verisi.get("yas"), 
@@ -427,15 +665,15 @@ class Veritabani:
         
         # 1. Mevcut profili 'tamamlandi' yap ve kalite metriklerini ekle
         if kalite_metrikleri:
-            self.safe_execute(c, """
+            c.execute(f"""
                 UPDATE katilimci_profilleri 
                 SET durum='tamamlandi', 
-                    bitis_tarihi=?,
-                    alistirma_hata_sayisi=?,
-                    alistirma_toplam=?,
-                    alistirma_hata_orani=?,
-                    baseline_ms=?
-                WHERE oturum_id=?
+                    bitis_tarihi={p},
+                    alistirma_hata_sayisi={p},
+                    alistirma_toplam={p},
+                    alistirma_hata_orani={p},
+                    baseline_ms={p}
+                WHERE oturum_id={p}
             """, (
                 tarih, 
                 kalite_metrikleri.get("alistirma_hata_sayisi", 0),
@@ -445,9 +683,9 @@ class Veritabani:
                 oturum_id
             ))
         else:
-            self.safe_execute(c, "UPDATE katilimci_profilleri SET durum='tamamlandi', bitis_tarihi=? WHERE oturum_id=?, (tarih, oturum_id))
+            c.execute(f"UPDATE katilimci_profilleri SET durum='tamamlandi', bitis_tarihi={p} WHERE oturum_id={p}", (tarih, oturum_id))
 
-        # 2. CevaplarÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â± kaydet
+        # 2. Cevaplar─▒ kaydet
         for item in cevap_listesi:
             # dogru_cevap_mi null ise SQLite'a None olarak gitsin
             dogru_mi = item.get("dogru_cevap_mi")
@@ -455,9 +693,9 @@ class Veritabani:
             elif dogru_mi is False: dogru_val = 0
             else: dogru_val = None
 
-            self.safe_execute(c, """
+            c.execute(f"""
                 INSERT INTO cevaplar (proje_id, katilimci_id, marka_id, ifade_id, cevap, sure_ms, tarih, oturum_id, is_alistirma, baseline_ms, dogru_cevap_mi)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p})
             """, (
                 proje_id, katilimci_id,
                 None if (item.get("is_alistirma") or item.get("marka_id") == 0) else item.get("marka_id"),
@@ -470,8 +708,8 @@ class Veritabani:
                 item.get("baseline_ms"),
                 dogru_val
             ))
-        self.safe_execute(c, 
-            f"UPDATE katilimci_linkleri SET durum='tamamlandi' WHERE proje_id=? AND son_oturum_id=?,
+        c.execute(
+            f"UPDATE katilimci_linkleri SET durum='tamamlandi' WHERE proje_id={p} AND son_oturum_id={p}",
             (proje_id, oturum_id)
         )
 
@@ -487,11 +725,11 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "SELECT COALESCE(MAX(sira),0)+1 as sira FROM mcrt_secenekler WHERE proje_id=?, (proje_id,))
+        c.execute(f"SELECT COALESCE(MAX(sira),0)+1 as sira FROM mcrt_secenekler WHERE proje_id={p}", (proje_id,))
         row = c.fetchone()
         sira = row['sira'] if self.db_type == "mysql" else row[0]
-        self.safe_execute(c, 
-            f"INSERT INTO mcrt_secenekler (proje_id, metin, resim_dosya, sira) VALUES (?,?,?,?)",
+        c.execute(
+            f"INSERT INTO mcrt_secenekler (proje_id, metin, resim_dosya, sira) VALUES ({p},{p},{p},{p})",
             (proje_id, metin, resim_dosya, sira)
         )
         conn.commit()
@@ -503,7 +741,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "DELETE FROM mcrt_secenekler WHERE id=?, (secenek_id,))
+        c.execute(f"DELETE FROM mcrt_secenekler WHERE id={p}", (secenek_id,))
         conn.commit()
         conn.close()
 
@@ -511,7 +749,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "SELECT * FROM mcrt_secenekler WHERE proje_id=? ORDER BY sira", (proje_id,))
+        c.execute(f"SELECT * FROM mcrt_secenekler WHERE proje_id={p} ORDER BY sira", (proje_id,))
         rows = c.fetchall()
         conn.close()
         return [dict(r) for r in rows]
@@ -523,15 +761,15 @@ class Veritabani:
         p = self._p()
         
         if kalite_metrikleri:
-            self.safe_execute(c, """
+            c.execute(f"""
                 UPDATE katilimci_profilleri 
                 SET durum='tamamlandi', 
-                    bitis_tarihi=?,
-                    alistirma_hata_sayisi=?,
-                    alistirma_toplam=?,
-                    alistirma_hata_orani=?,
-                    baseline_ms=?
-                WHERE oturum_id=?
+                    bitis_tarihi={p},
+                    alistirma_hata_sayisi={p},
+                    alistirma_toplam={p},
+                    alistirma_hata_orani={p},
+                    baseline_ms={p}
+                WHERE oturum_id={p}
             """, (
                 tarih, 
                 kalite_metrikleri.get("alistirma_hata_sayisi", 0),
@@ -541,12 +779,12 @@ class Veritabani:
                 oturum_id
             ))
         else:
-            self.safe_execute(c, "UPDATE katilimci_profilleri SET durum='tamamlandi', bitis_tarihi=? WHERE oturum_id=?, (tarih, oturum_id))
+            c.execute(f"UPDATE katilimci_profilleri SET durum='tamamlandi', bitis_tarihi={p} WHERE oturum_id={p}", (tarih, oturum_id))
 
         for item in cevap_listesi:
-            self.safe_execute(c, """
+            c.execute(f"""
                 INSERT INTO mcrt_cevaplar (proje_id, katilimci_id, oturum_id, marka_id, ifade_id, secilen_secenek_id, cevap_metin, sure_ms, tarih, baseline_ms, is_alistirma)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p})
             """, (
                 proje_id, katilimci_id, oturum_id,
                 item.get("marka_id"),
@@ -558,8 +796,8 @@ class Veritabani:
                 item.get("baseline_ms"),
                 1 if item.get("is_alistirma") else 0
             ))
-        self.safe_execute(c, 
-            f"UPDATE katilimci_linkleri SET durum='tamamlandi' WHERE proje_id=? AND son_oturum_id=?,
+        c.execute(
+            f"UPDATE katilimci_linkleri SET durum='tamamlandi' WHERE proje_id={p} AND son_oturum_id={p}",
             (proje_id, oturum_id)
         )
 
@@ -568,7 +806,7 @@ class Veritabani:
         return len(cevap_listesi)
 
     # ========================
-    # PROJE VERÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â° ve ÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â°STATÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â°STÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â°K
+    # PROJE VER─░ ve ─░STAT─░ST─░K
     # ========================
 
     def proje_verileri(self, proje_id, marka_id=None):
@@ -584,14 +822,14 @@ class Veritabani:
             FROM cevaplar c
             LEFT JOIN markalar m ON c.marka_id = m.id
             LEFT JOIN ifadeler i ON c.ifade_id = i.id
-            WHERE c.proje_id = ?
+            WHERE c.proje_id = {p}
         """
         params = [proje_id]
         if marka_id:
-            sorgu += f" AND c.marka_id = ?
+            sorgu += f" AND c.marka_id = {p}"
             params.append(marka_id)
         sorgu += " ORDER BY c.tarih DESC"
-        self.safe_execute(c, sorgu, params)
+        c.execute(sorgu, params)
         rows = c.fetchall()
         conn.close()
         return [dict(r) for r in rows]
@@ -599,7 +837,7 @@ class Veritabani:
     def proje_mcrt_verileri_df(self, proje_id):
         conn = self._baglanti_al()
         p = self._p()
-        # MCRT verilerini (mcrt_cevaplar tablosundan) ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ek
+        # MCRT verilerini (mcrt_cevaplar tablosundan) ├ºek
         query = f"""
             SELECT c.id, c.oturum_id, c.katilimci_id,
                    c.marka_id, c.ifade_id,
@@ -613,7 +851,7 @@ class Veritabani:
             LEFT JOIN markalar m ON c.marka_id = m.id
             LEFT JOIN ifadeler i ON c.ifade_id = i.id
             LEFT JOIN katilimci_profilleri kp ON LOWER(c.oturum_id) = LOWER(kp.oturum_id)
-            WHERE c.proje_id = ? AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
+            WHERE c.proje_id = {p} AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
             ORDER BY c.tarih
         """
         df = pd.read_sql_query(query, conn, params=[proje_id])
@@ -623,7 +861,7 @@ class Veritabani:
     def proje_verileri_df(self, proje_id):
         conn = self._baglanti_al()
         p = self._p()
-        # TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼m verileri ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ek (Filtreleme analiz modÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼nde yapÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±lacak)
+        # T├╝m verileri ├ºek (Filtreleme analiz mod├╝l├╝nde yap─▒lacak)
         query = f"""
             SELECT c.id, c.oturum_id, c.katilimci_id,
                    COALESCE(m.analiz_etiketi, m.ad) as marka,
@@ -637,7 +875,7 @@ class Veritabani:
             LEFT JOIN markalar m ON c.marka_id = m.id
             LEFT JOIN ifadeler i ON c.ifade_id = i.id
             LEFT JOIN katilimci_profilleri kp ON LOWER(c.oturum_id) = LOWER(kp.oturum_id)
-            WHERE c.proje_id = ? AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
+            WHERE c.proje_id = {p} AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
             ORDER BY c.tarih
         """
         df = pd.read_sql_query(query, conn, params=[proje_id])
@@ -653,7 +891,7 @@ class Veritabani:
                    cihaz_tipi, tarayici_bilgisi, baslangic_tarihi, bitis_tarihi, 
                    durum, ip_adresi, enlem, boylam, konum_hassasiyet, panel_pid
             FROM katilimci_profilleri
-            WHERE proje_id = ?
+            WHERE proje_id = {p}
             ORDER BY id DESC
         """, conn, params=[proje_id])
         conn.close()
@@ -677,12 +915,12 @@ class Veritabani:
             FROM katilimci_profilleri p
             JOIN cevaplar c ON LOWER(p.oturum_id) = LOWER(c.oturum_id)
             LEFT JOIN markalar m ON c.marka_id = m.id
-            WHERE c.proje_id = ? AND c.is_alistirma = 0 AND (m.is_noise = 0 OR m.is_noise IS NULL)
+            WHERE c.proje_id = {p} AND c.is_alistirma = 0 AND (m.is_noise = 0 OR m.is_noise IS NULL)
             GROUP BY p.oturum_id
             ORDER BY guclu_sayi DESC
         """
         try:
-            self.safe_execute(c, query, (proje_id,))
+            c.execute(query, (proje_id,))
             rows = c.fetchall()
             
             ozetler = []
@@ -691,7 +929,7 @@ class Veritabani:
                 ozetler.append({
                     "oturum_id": oid,
                     "pid": str(oid)[:8],
-                    "ad_soyad": r['ad_soyad'] or "ÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â°simsiz",
+                    "ad_soyad": r['ad_soyad'] or "─░simsiz",
                     "yas": r['yas'] or 0,
                     "cinsiyet": r['cinsiyet'] or "-",
                     "ses": r['ses'] or "-",
@@ -724,12 +962,12 @@ class Veritabani:
             FROM katilimci_profilleri p
             JOIN mcrt_cevaplar c ON LOWER(p.oturum_id) = LOWER(c.oturum_id)
             LEFT JOIN markalar m ON c.marka_id = m.id
-            WHERE c.proje_id = ? AND c.is_alistirma = 0 AND (m.is_noise = 0 OR m.is_noise IS NULL)
+            WHERE c.proje_id = {p} AND c.is_alistirma = 0 AND (m.is_noise = 0 OR m.is_noise IS NULL)
             GROUP BY p.oturum_id
             ORDER BY guclu_sayi DESC
         """
         try:
-            self.safe_execute(c, query, (proje_id,))
+            c.execute(query, (proje_id,))
             rows = c.fetchall()
 
             ozetler = []
@@ -738,7 +976,7 @@ class Veritabani:
                 ozetler.append({
                     "oturum_id": oid,
                     "pid": str(oid)[:8],
-                    "ad_soyad": r['ad_soyad'] or "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°simsiz",
+                    "ad_soyad": r['ad_soyad'] or "├ä┬░simsiz",
                     "yas": r['yas'] or 0,
                     "cinsiyet": r['cinsiyet'] or "-",
                     "ses": r['ses'] or "-",
@@ -757,7 +995,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "UPDATE projeler SET ai_analiz = ? WHERE id = ?, (metin, proje_id))
+        c.execute(f"UPDATE projeler SET ai_analiz = {p} WHERE id = {p}", (metin, proje_id))
         conn.commit()
         conn.close()
 
@@ -765,7 +1003,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, "SELECT ai_analiz FROM projeler WHERE id = ?, (proje_id,))
+        c.execute(f"SELECT ai_analiz FROM projeler WHERE id = {p}", (proje_id,))
         row = c.fetchone()
         conn.close()
         return row['ai_analiz'] if self.db_type == "mysql" else row[0] if row else None
@@ -775,7 +1013,7 @@ class Veritabani:
         c = self._get_cursor(conn)
         p = self._p()
 
-        self.safe_execute(c, "SELECT test_turu, mcrt_kurgu FROM projeler WHERE id=?, (proje_id,))
+        c.execute(f"SELECT test_turu, mcrt_kurgu FROM projeler WHERE id={p}", (proje_id,))
         proje_row = c.fetchone()
         test_turu = ((proje_row['test_turu'] if self.db_type == "mysql" else proje_row[0]) if proje_row else "standart") or "standart"
         mcrt_kurgu = ((proje_row['mcrt_kurgu'] if self.db_type == "mysql" else proje_row[1]) if proje_row else "cift_blok") or "cift_blok"
@@ -783,47 +1021,47 @@ class Veritabani:
         if test_turu in ("mcrt", "mrt"):
             from analiz.mcrt_analiz import mcrt_katilimci_kalite_analizi
 
-            self.safe_execute(c, "SELECT oturum_id, durum FROM katilimci_profilleri WHERE proje_id=? AND LOWER(COALESCE(durum,'')) NOT LIKE 'gecersiz%'", (proje_id,))
+            c.execute(f"SELECT oturum_id, durum FROM katilimci_profilleri WHERE proje_id={p} AND LOWER(COALESCE(durum,'')) NOT LIKE 'gecersiz%'", (proje_id,))
             profil_rows = c.fetchall()
             profiller = [dict(r) if self.db_type == "mysql" else {"oturum_id": r[0], "durum": r[1]} for r in profil_rows]
             profil_sayisi = len(profiller)
 
-            self.safe_execute(c, """
+            c.execute(f"""
                 SELECT COUNT(*) as sayi
                 FROM mcrt_cevaplar c
                 JOIN katilimci_profilleri kp ON LOWER(c.oturum_id) = LOWER(kp.oturum_id)
-                WHERE c.proje_id=? AND c.is_alistirma=0 AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
+                WHERE c.proje_id={p} AND c.is_alistirma=0 AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
             """, (proje_id,))
             res = c.fetchone()
             toplam_cevap = res['sayi'] if self.db_type == "mysql" else res[0]
 
-            self.safe_execute(c, """
+            c.execute(f"""
                 SELECT COUNT(*) as sayi
                 FROM mcrt_cevaplar c
                 JOIN katilimci_profilleri kp ON LOWER(c.oturum_id) = LOWER(kp.oturum_id)
-                WHERE c.proje_id=? AND c.is_alistirma=1 AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
+                WHERE c.proje_id={p} AND c.is_alistirma=1 AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
             """, (proje_id,))
             res = c.fetchone()
             kalibrasyon_cevap = res['sayi'] if self.db_type == "mysql" else res[0]
 
-            self.safe_execute(c, """
+            c.execute(f"""
                 SELECT AVG(c.sure_ms) as sayi
                 FROM mcrt_cevaplar c
                 JOIN katilimci_profilleri kp ON LOWER(c.oturum_id) = LOWER(kp.oturum_id)
-                WHERE c.proje_id=? AND c.is_alistirma=0 AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
+                WHERE c.proje_id={p} AND c.is_alistirma=0 AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
             """, (proje_id,))
             res = c.fetchone()
             ort_sure = res['sayi'] if self.db_type == "mysql" else res[0]
 
-            self.safe_execute(c, "SELECT COUNT(*) as sayi FROM markalar WHERE proje_id=? AND (is_noise = 0 OR is_noise IS NULL)", (proje_id,))
+            c.execute(f"SELECT COUNT(*) as sayi FROM markalar WHERE proje_id={p} AND (is_noise = 0 OR is_noise IS NULL)", (proje_id,))
             res = c.fetchone()
             marka_sayisi = res['sayi'] if self.db_type == "mysql" else res[0]
 
-            self.safe_execute(c, "SELECT COUNT(*) as sayi FROM ifadeler WHERE proje_id=?, (proje_id,))
+            c.execute(f"SELECT COUNT(*) as sayi FROM ifadeler WHERE proje_id={p}", (proje_id,))
             res = c.fetchone()
             ifade_sayisi = res['sayi'] if self.db_type == "mysql" else res[0]
 
-            self.safe_execute(c, "SELECT COUNT(*) as sayi FROM mcrt_secenekler WHERE proje_id=?, (proje_id,))
+            c.execute(f"SELECT COUNT(*) as sayi FROM mcrt_secenekler WHERE proje_id={p}", (proje_id,))
             res = c.fetchone()
             secenek_sayisi = res['sayi'] if self.db_type == "mysql" else res[0]
 
@@ -840,14 +1078,14 @@ class Veritabani:
             else:
                 beklenen_soru = (marka_sayisi * ifade_trial) + (ifade_tabani * marka_trial)
 
-            self.safe_execute(c, """
+            c.execute(f"""
                 SELECT c.oturum_id, COUNT(*) as cevap_sayisi, AVG(c.sure_ms) as ort_sure,
                        SUM(CASE WHEN c.sure_ms < 250 THEN 1 ELSE 0 END) as hizli_sayi,
                        SUM(CASE WHEN c.sure_ms > 8000 THEN 1 ELSE 0 END) as yavas_sayi,
                        GROUP_CONCAT(c.cevap_metin) as cevaplar
                 FROM mcrt_cevaplar c
                 LEFT JOIN markalar m ON c.marka_id = m.id
-                WHERE c.proje_id=? AND c.is_alistirma=0 AND (m.is_noise = 0 OR m.is_noise IS NULL)
+                WHERE c.proje_id={p} AND c.is_alistirma=0 AND (m.is_noise = 0 OR m.is_noise IS NULL)
                 GROUP BY c.oturum_id
             """, (proje_id,))
             katilimci_detay = c.fetchall()
@@ -897,7 +1135,7 @@ class Veritabani:
                 else:
                     yarim_kalan += 1
 
-            self.safe_execute(c, "SELECT hedef_orneklem FROM projeler WHERE id=?, (proje_id,))
+            c.execute(f"SELECT hedef_orneklem FROM projeler WHERE id={p}", (proje_id,))
             res = c.fetchone()
             hedef = (res['hedef_orneklem'] if self.db_type == "mysql" else res[0]) or 0
 
@@ -921,53 +1159,53 @@ class Veritabani:
         
         from analiz.analiz import katilimci_kalite_analizi
 
-        self.safe_execute(c, "SELECT oturum_id, durum FROM katilimci_profilleri WHERE proje_id=? AND LOWER(COALESCE(durum,'')) NOT LIKE 'gecersiz%'", (proje_id,))
+        c.execute(f"SELECT oturum_id, durum FROM katilimci_profilleri WHERE proje_id={p} AND LOWER(COALESCE(durum,'')) NOT LIKE 'gecersiz%'", (proje_id,))
         profil_rows = c.fetchall()
         profiller = [dict(r) if self.db_type == "mysql" else {"oturum_id": r[0], "durum": r[1]} for r in profil_rows]
         profil_sayisi = len(profiller)
         
-        self.safe_execute(c, """
+        c.execute(f"""
             SELECT COUNT(*) as sayi
             FROM cevaplar c
             JOIN katilimci_profilleri kp ON LOWER(c.oturum_id) = LOWER(kp.oturum_id)
-            WHERE c.proje_id=? AND c.is_alistirma=0 AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
+            WHERE c.proje_id={p} AND c.is_alistirma=0 AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
         """, (proje_id,))
         res = c.fetchone()
         toplam_cevap = res['sayi'] if self.db_type == "mysql" else res[0]
         
-        self.safe_execute(c, """
+        c.execute(f"""
             SELECT COUNT(*) as sayi
             FROM cevaplar c
             JOIN katilimci_profilleri kp ON LOWER(c.oturum_id) = LOWER(kp.oturum_id)
-            WHERE c.proje_id=? AND c.is_alistirma=1 AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
+            WHERE c.proje_id={p} AND c.is_alistirma=1 AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
         """, (proje_id,))
         res = c.fetchone()
         kalibrasyon_cevap = res['sayi'] if self.db_type == "mysql" else res[0]
         
-        self.safe_execute(c, """
+        c.execute(f"""
             SELECT AVG(c.sure_ms) as sayi
             FROM cevaplar c
             JOIN katilimci_profilleri kp ON LOWER(c.oturum_id) = LOWER(kp.oturum_id)
-            WHERE c.proje_id=? AND c.is_alistirma=0 AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
+            WHERE c.proje_id={p} AND c.is_alistirma=0 AND LOWER(COALESCE(kp.durum,'')) NOT LIKE 'gecersiz%'
         """, (proje_id,))
         res = c.fetchone()
         ort_sure = res['sayi'] if self.db_type == "mysql" else res[0]
         
-        self.safe_execute(c, "SELECT COUNT(*) as sayi FROM markalar WHERE proje_id=? AND (is_noise = 0 OR is_noise IS NULL)", (proje_id,))
+        c.execute(f"SELECT COUNT(*) as sayi FROM markalar WHERE proje_id={p} AND (is_noise = 0 OR is_noise IS NULL)", (proje_id,))
         res = c.fetchone()
         marka_sayisi = res['sayi'] if self.db_type == "mysql" else res[0]
         
-        self.safe_execute(c, "SELECT COUNT(*) as sayi FROM ifadeler WHERE proje_id=?, (proje_id,))
+        c.execute(f"SELECT COUNT(*) as sayi FROM ifadeler WHERE proje_id={p}", (proje_id,))
         res = c.fetchone()
         ifade_sayisi = res['sayi'] if self.db_type == "mysql" else res[0]
 
         beklenen_soru = marka_sayisi * ifade_sayisi
         
-        self.safe_execute(c, """
+        c.execute(f"""
             SELECT c.oturum_id, COUNT(*) as cevap_sayisi, AVG(c.sure_ms) as ort_sure 
             FROM cevaplar c
             LEFT JOIN markalar m ON c.marka_id = m.id
-            WHERE c.proje_id=? AND c.is_alistirma=0 AND (m.is_noise = 0 OR m.is_noise IS NULL)
+            WHERE c.proje_id={p} AND c.is_alistirma=0 AND (m.is_noise = 0 OR m.is_noise IS NULL)
             GROUP BY c.oturum_id
         """, (proje_id,))
         katilimci_detay = c.fetchall()
@@ -1018,7 +1256,7 @@ class Veritabani:
             else:
                 yarim_kalan += 1
 
-        self.safe_execute(c, "SELECT hedef_orneklem FROM projeler WHERE id=?, (proje_id,))
+        c.execute(f"SELECT hedef_orneklem FROM projeler WHERE id={p}", (proje_id,))
         res = c.fetchone()
         hedef = (res['hedef_orneklem'] if self.db_type == "mysql" else res[0]) or 0
 
@@ -1044,28 +1282,28 @@ class Veritabani:
         c = self._get_cursor(conn)
         p = self._p()
         
-        self.safe_execute(c, "SELECT * FROM projeler WHERE id=?, (proje_id,))
+        c.execute(f"SELECT * FROM projeler WHERE id={p}", (proje_id,))
         proje = dict(c.fetchone())
         
-        self.safe_execute(c, "SELECT * FROM markalar WHERE proje_id=?, (proje_id,))
+        c.execute(f"SELECT * FROM markalar WHERE proje_id={p}", (proje_id,))
         markalar = [dict(r) for r in c.fetchall()]
         
-        self.safe_execute(c, "SELECT * FROM ifadeler WHERE proje_id=?, (proje_id,))
+        c.execute(f"SELECT * FROM ifadeler WHERE proje_id={p}", (proje_id,))
         ifadeler = [dict(r) for r in c.fetchall()]
         
-        self.safe_execute(c, "SELECT * FROM cevaplar WHERE proje_id=?, (proje_id,))
+        c.execute(f"SELECT * FROM cevaplar WHERE proje_id={p}", (proje_id,))
         cevaplar = [dict(r) for r in c.fetchall()]
         
-        self.safe_execute(c, "SELECT * FROM katilimci_profilleri WHERE proje_id=?, (proje_id,))
+        c.execute(f"SELECT * FROM katilimci_profilleri WHERE proje_id={p}", (proje_id,))
         profiller = [dict(r) for r in c.fetchall()]
         
-        self.safe_execute(c, "SELECT * FROM katilimci_linkleri WHERE proje_id=?, (proje_id,))
+        c.execute(f"SELECT * FROM katilimci_linkleri WHERE proje_id={p}", (proje_id,))
         linkler = [dict(r) for r in c.fetchall()]
 
-        self.safe_execute(c, "SELECT * FROM mcrt_secenekler WHERE proje_id=?, (proje_id,))
+        c.execute(f"SELECT * FROM mcrt_secenekler WHERE proje_id={p}", (proje_id,))
         mcrt_secenekler = [dict(r) for r in c.fetchall()]
 
-        self.safe_execute(c, "SELECT * FROM mcrt_cevaplar WHERE proje_id=?, (proje_id,))
+        c.execute(f"SELECT * FROM mcrt_cevaplar WHERE proje_id={p}", (proje_id,))
         mcrt_cevaplar = [dict(r) for r in c.fetchall()]
         
         conn.close()
@@ -1105,14 +1343,14 @@ class Veritabani:
             if geri_yuklenen_durum == "canli":
                 geri_yuklenen_durum = "taslak"
 
-            self.safe_execute(c, 
+            c.execute(
                 f"""INSERT INTO projeler
                     (ad, aciklama, durum, benzersiz_kod, olusturma_tarihi,
                      katilimci_bilgilendirme, alistirma_aktif, soru_randomize,
                      hedef_orneklem, test_turu, panel_complete_url,
                      panel_screenout_url, panel_quotafull_url, ai_analiz,
                      mcrt_kurgu, mcrt_yerlesim)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p})""",
                     (
                         proje.get("ad", "Geri Yuklenen Proje"),
                         proje.get("aciklama", ""),
@@ -1136,10 +1374,10 @@ class Veritabani:
 
             marka_id_map = {}
             for item in markalar:
-                self.safe_execute(c, 
+                c.execute(
                     f"""INSERT INTO markalar
                         (proje_id, ad, resim_dosya, is_noise, sira, analiz_etiketi)
-                        VALUES (?,?,?,?,?,?)""",
+                        VALUES ({p},{p},{p},{p},{p},{p})""",
                     (
                         yeni_proje_id,
                         item.get("ad", ""),
@@ -1153,10 +1391,10 @@ class Veritabani:
 
             ifade_id_map = {}
             for item in ifadeler:
-                self.safe_execute(c, 
+                c.execute(
                     f"""INSERT INTO ifadeler
                         (proje_id, metin, kategori, resim_dosya, sira)
-                        VALUES (?,?,?,?,?)""",
+                        VALUES ({p},{p},{p},{p},{p})""",
                     (
                         yeni_proje_id,
                         item.get("metin", ""),
@@ -1169,10 +1407,10 @@ class Veritabani:
 
             secenek_id_map = {}
             for item in mcrt_secenekler:
-                self.safe_execute(c, 
+                c.execute(
                     f"""INSERT INTO mcrt_secenekler
                         (proje_id, metin, resim_dosya, sira)
-                        VALUES (?,?,?,?)""",
+                        VALUES ({p},{p},{p},{p})""",
                     (
                         yeni_proje_id,
                         item.get("metin", ""),
@@ -1196,7 +1434,7 @@ class Veritabani:
             for item in profiller:
                 eski_oturum = str((item.get("oturum_id") or "").strip())
                 yeni_oturum = oturum_id_map.get(eski_oturum, f"restore_{uuid.uuid4().hex[:20]}")
-                self.safe_execute(c, 
+                c.execute(
                     f"""INSERT INTO katilimci_profilleri
                         (oturum_id, proje_id, ad_soyad, yas, cinsiyet, meslek, il, ilce,
                          egitim, ev_durumu, araba_durumu, saglik_durumu, ses_grubu,
@@ -1204,7 +1442,7 @@ class Veritabani:
                          bitis_tarihi, durum, ip_adresi, enlem, boylam, konum_hassasiyet,
                          baglanti_hatasi, alistirma_hata_sayisi, alistirma_toplam,
                          alistirma_hata_orani, baseline_ms)
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p})""",
                     (
                         yeni_oturum,
                         yeni_proje_id,
@@ -1242,11 +1480,11 @@ class Veritabani:
                 eski_token = item.get("token")
                 yeni_token = token_map.get(eski_token, uuid.uuid4().hex[:12])
                 son_oturum_id = item.get("son_oturum_id")
-                self.safe_execute(c, 
+                c.execute(
                     f"""INSERT INTO katilimci_linkleri
                         (proje_id, token, kullanildi, durum, kullanim_sayisi,
                          yeniden_acma_sayisi, son_oturum_id, kullanim_tarihi, olusturma_tarihi)
-                        VALUES (?,?,?,?,?,?,?,?,?)""",
+                        VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p})""",
                     (
                         yeni_proje_id,
                         yeni_token,
@@ -1262,11 +1500,11 @@ class Veritabani:
 
             for item in cevaplar:
                 eski_oturum = str((item.get("oturum_id") or "").strip())
-                self.safe_execute(c, 
+                c.execute(
                     f"""INSERT INTO cevaplar
                         (proje_id, katilimci_id, marka_id, ifade_id, cevap, sure_ms, tarih,
                          oturum_id, is_alistirma, baseline_ms, dogru_cevap_mi)
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                        VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p})""",
                     (
                         yeni_proje_id,
                         item.get("katilimci_id"),
@@ -1284,11 +1522,11 @@ class Veritabani:
 
             for item in mcrt_cevaplar:
                 eski_oturum = str((item.get("oturum_id") or "").strip())
-                self.safe_execute(c, 
+                c.execute(
                     f"""INSERT INTO mcrt_cevaplar
                         (proje_id, katilimci_id, oturum_id, marka_id, ifade_id,
                          secilen_secenek_id, cevap_metin, sure_ms, tarih, baseline_ms, is_alistirma)
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                        VALUES ({p},{p},{p},{p},{p},{p},{p},{p},{p},{p},{p})""",
                     (
                         yeni_proje_id,
                         item.get("katilimci_id"),
@@ -1323,7 +1561,7 @@ class Veritabani:
                    SUM(CASE WHEN c.cevap='Evet' THEN 1 ELSE 0 END) as evet_sayisi,
                    AVG(c.sure_ms) as ort_sure,
                    AVG(CASE WHEN c.cevap='Evet' THEN c.sure_ms END) as evet_sure,
-                   AVG(CASE WHEN c.cevap='HayÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±r' THEN c.sure_ms END) as hayir_sure,
+                   AVG(CASE WHEN c.cevap='Hay─▒r' THEN c.sure_ms END) as hayir_sure,
                    AVG(
                      CASE 
                         WHEN (50 + (((CASE WHEN c.baseline_ms > 0 THEN c.baseline_ms ELSE 1000 END) - c.sure_ms) / 10)) > 100 THEN 100
@@ -1335,30 +1573,30 @@ class Veritabani:
             LEFT JOIN markalar m ON c.marka_id = m.id
             LEFT JOIN ifadeler i ON c.ifade_id = i.id
             LEFT JOIN katilimci_profilleri p_prof ON LOWER(c.oturum_id) = LOWER(p_prof.oturum_id)
-            WHERE c.proje_id = ? AND c.is_alistirma = 0 AND (m.is_noise = 0 OR m.is_noise IS NULL)
+            WHERE c.proje_id = {p} AND c.is_alistirma = 0 AND (m.is_noise = 0 OR m.is_noise IS NULL)
         """
         params = [proje_id]
         
         if filtre:
             if filtre.get("cinsiyet"):
-                sorgu += f" AND p_prof.cinsiyet = ?
+                sorgu += f" AND p_prof.cinsiyet = {p}"
                 params.append(filtre["cinsiyet"])
             if filtre.get("yas_min"):
-                sorgu += f" AND p_prof.yas >= ?
+                sorgu += f" AND p_prof.yas >= {p}"
                 params.append(int(filtre["yas_min"]))
             if filtre.get("yas_max"):
-                sorgu += f" AND p_prof.yas <= ?
+                sorgu += f" AND p_prof.yas <= {p}"
                 params.append(int(filtre["yas_max"]))
             if filtre.get("ses_grubu"):
-                sorgu += f" AND p_prof.ses_grubu = ?
+                sorgu += f" AND p_prof.ses_grubu = {p}"
                 params.append(filtre["ses_grubu"])
             if filtre.get("il"):
-                sorgu += f" AND p_prof.il = ?
+                sorgu += f" AND p_prof.il = {p}"
                 params.append(filtre["il"])
 
         sorgu += " GROUP BY m.id, i.metin ORDER BY COALESCE(m.analiz_etiketi, m.ad), i.metin"
         
-        self.safe_execute(c, sorgu, params)
+        c.execute(sorgu, params)
         rows = c.fetchall()
         conn.close()
 
@@ -1382,8 +1620,8 @@ class Veritabani:
         linkler = []
         for _ in range(adet):
             token = uuid.uuid4().hex[:12]
-            self.safe_execute(c, 
-                f"INSERT INTO katilimci_linkleri (proje_id, token, olusturma_tarihi) VALUES (?,?,?)",
+            c.execute(
+                f"INSERT INTO katilimci_linkleri (proje_id, token, olusturma_tarihi) VALUES ({p},{p},{p})",
                 (proje_id, token, tarih)
             )
             linkler.append(token)
@@ -1395,8 +1633,8 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, 
-            f"SELECT * FROM katilimci_linkleri WHERE proje_id=? ORDER BY id DESC",
+        c.execute(
+            f"SELECT * FROM katilimci_linkleri WHERE proje_id={p} ORDER BY id DESC",
             (proje_id,)
         )
         rows = c.fetchall()
@@ -1408,8 +1646,8 @@ class Veritabani:
         c = self._get_cursor(conn)
         p = self._p()
 
-        self.safe_execute(c, 
-            f"SELECT * FROM katilimci_linkleri WHERE proje_id=? AND token=?,
+        c.execute(
+            f"SELECT * FROM katilimci_linkleri WHERE proje_id={p} AND token={p}",
             (proje_id, token)
         )
         row = c.fetchone()
@@ -1432,21 +1670,21 @@ class Veritabani:
 
         son_oturum_id = link.get("son_oturum_id")
         if son_oturum_id:
-            self.safe_execute(c, 
+            c.execute(
                 f"""UPDATE katilimci_profilleri
                     SET durum='gecersiz_admin_yeniden_acildi'
-                    WHERE proje_id=? AND oturum_id=?"",
+                    WHERE proje_id={p} AND oturum_id={p}""",
                 (proje_id, son_oturum_id)
             )
 
-        self.safe_execute(c, 
+        c.execute(
             f"""UPDATE katilimci_linkleri
                 SET kullanildi=0,
                     durum='aktif',
                     son_oturum_id=NULL,
                     kullanim_tarihi=NULL,
                     yeniden_acma_sayisi=COALESCE(yeniden_acma_sayisi, 0) + 1
-                WHERE proje_id=? AND token=?"",
+                WHERE proje_id={p} AND token={p}""",
             (proje_id, token)
         )
         conn.commit()
@@ -1457,8 +1695,8 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        self.safe_execute(c, 
-            f"SELECT * FROM katilimci_linkleri WHERE token=? AND kullanildi=0",
+        c.execute(
+            f"SELECT * FROM katilimci_linkleri WHERE token={p} AND kullanildi=0",
             (token,)
         )
         row = c.fetchone()
@@ -1470,18 +1708,12 @@ class Veritabani:
         c = self._get_cursor(conn)
         p = self._p()
         tarih = datetime.now().isoformat()
-        self.safe_execute(c, 
-            f"UPDATE katilimci_linkleri SET kullanildi=1, kullanim_tarihi=? WHERE token=?,
+        c.execute(
+            f"UPDATE katilimci_linkleri SET kullanildi=1, kullanim_tarihi={p} WHERE token={p}",
             (tarih, token)
         )
         conn.commit()
         conn.close()
 
-    # NOT: proje_verileri_df ve proje_katilimci_profilleri_df yukarÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±da (satÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±r 548, 569) tanÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±mlÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±dÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±r.
-    # Duplike tanÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±mlamalar kaldÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±rÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±ldÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±.
-
-
-
-
-
-
+    # NOT: proje_verileri_df ve proje_katilimci_profilleri_df yukar─▒da (sat─▒r 548, 569) tan─▒ml─▒d─▒r.
+    # Duplike tan─▒mlamalar kald─▒r─▒ld─▒.

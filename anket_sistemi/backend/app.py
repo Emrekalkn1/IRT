@@ -1285,5 +1285,5 @@ def katilimci_detaylari_api(proje_id):
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=False # nosemgrep, port=5000)
+    app.run(debug=False, port=5000)  # nosemgrep
 

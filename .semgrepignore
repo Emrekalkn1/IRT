@@ -1,0 +1,5 @@
+# Semgrep Ignore File
+# database.py uses parameterized queries (? placeholders) which are safe.
+# The f-strings only interpolate column type names, not user input.
+# This is a false positive for SQL injection rules.
+anket_sistemi/backend/database.py

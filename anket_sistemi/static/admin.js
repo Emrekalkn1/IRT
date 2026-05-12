@@ -268,13 +268,6 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
         const isMcrt = p.test_turu === 'mcrt' || p.test_turu === 'mrt';
         document.getElementById('cardMcrtSecenekler').style.display = 'none';
         document.getElementById('mcrtKurguAlani').style.display = isMcrt ? 'grid' : 'none';
-        
-        if(isMcrt) {
-            mcrtArayuzGuncelle();
-        } else {
-            // Standart IRT ise her şeyi normale döndür
-            document.querySelectorAll('.card').forEach(c => c.classList.remove('card-disabled'));
-        }
 
         document.getElementById('markaListesi').innerHTML = p.markalar.map(m => {
             let resimIcerik = '<div style="width:32px; height:32px; background:rgba(255,255,255,0.05); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:var(--text-dim);">Yok</div>';
@@ -318,6 +311,13 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
                 <button class="btn btn-danger btn-sm" data-action="ifade-sil" data-ifade-id="${i.id}">✕</button>
             </li>`;
         }).join('');
+
+        if(isMcrtTest(mevcutProjeTestTuru)) {
+            mcrtArayuzGuncelle();
+        } else {
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('card-disabled'));
+        }
+
         tabDegistir('detay');
     }
 
