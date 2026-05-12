@@ -656,10 +656,33 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
                     </td>
                     <td style="font-size:0.75rem;">${p.baslangic_tarihi ? new Date(p.baslangic_tarihi).toLocaleString('tr-TR') : '-'}</td>
                     <td style="font-size:0.75rem;">${p.bitis_tarihi ? new Date(p.bitis_tarihi).toLocaleString('tr-TR') : '-'}</td>
+                    <td style="text-align:center;">
+                        <button class="btn btn-danger" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;" onclick="katilimciSil('${p.oturum_id}')" title="Bu katılımcının tüm verilerini siler">Sil</button>
+                    </td>
                 </tr>
             `;
         }).join('');
     }
+
+    window.katilimciSil = async function(oturumId) {
+        if(!confirm("Bu katılımcının tüm verilerini (cevaplar ve profil) silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) return;
+        
+        try {
+            const res = await fetch(`/api/katilimci/${oturumId}/sil`, {
+                method: 'DELETE',
+                headers: { 'X-CSRFToken': csrfToken }
+            });
+            const data = await res.json();
+            if(data.durum === 'basarili') {
+                toastGoster("Katılımcı verileri başarıyla silindi.");
+                katilimcilariYukle(); // Refresh list
+            } else {
+                toastGoster("Hata: " + data.mesaj);
+            }
+        } catch(err) {
+            toastGoster("Sunucu hatası: " + err);
+        }
+    };
 
     async function markaSil(id) {
         if(!confirm("Bu markayı silmek istediğinize emin misiniz?")) return;

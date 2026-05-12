@@ -1383,6 +1383,15 @@ def katilimci_detaylari_api(proje_id):
     except Exception as e:
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
 
+@app.route("/api/katilimci/<oturum_id>/sil", methods=["DELETE"])
+@login_required
+def katilimci_sil_api(oturum_id):
+    try:
+        db.katilimci_sil(oturum_id)
+        return jsonify({"durum": "basarili", "mesaj": "Katılımcı silindi."})
+    except Exception as e:
+        return jsonify({"durum": "hata", "mesaj": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(debug=False, port=5000)  # nosemgrep
 
