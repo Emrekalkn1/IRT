@@ -428,6 +428,18 @@ def proje_durum(proje_id):
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
 
 
+
+@app.route("/api/proje/<int:proje_id>/kilit", methods=["POST"])
+@login_required
+def proje_kilit_api(proje_id):
+    try:
+        yeni_durum = db.proje_kilit_degistir(proje_id)
+        if yeni_durum is None:
+            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadı."}), 404
+        return jsonify({"durum": "basarili", "kilitli": yeni_durum, "mesaj": "Kilit durumu güncellendi."})
+    except Exception as e:
+        return jsonify({"durum": "hata", "mesaj": str(e)}), 500
+
 @app.route("/api/proje/<int:proje_id>/sil", methods=["DELETE"])
 @login_required
 def proje_sil_api(proje_id):
@@ -437,6 +449,16 @@ def proje_sil_api(proje_id):
     except Exception as e:
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
 
+
+
+@app.route("/api/katilimci/<oturum_id>/sil", methods=["DELETE"])
+@login_required
+def katilimci_sil_api(oturum_id):
+    try:
+        db.katilimci_sil(oturum_id)
+        return jsonify({"durum": "basarili", "mesaj": "Katılımcı ve verileri silindi."})
+    except Exception as e:
+        return jsonify({"durum": "hata", "mesaj": str(e)}), 500
 
 @app.route("/api/proje/<int:proje_id>/yedekle", methods=["GET"])
 @login_required
@@ -529,6 +551,10 @@ def link_yeniden_ac_api(proje_id, token):
 @login_required
 def marka_ekle_api(proje_id):
     try:
+
+        proje = db.proje_getir(proje_id)
+        if proje and proje.get("kilitli") == 1:
+            return jsonify({"durum": "hata", "mesaj": "Proje kilitli. İfade, marka veya seçenek eklenip silinemez."}), 403
         ad = request.form.get("ad", "").strip()
         if not ad:
             return jsonify({"durum": "hata", "mesaj": "Marka adÄ± boÅŸ olamaz."}), 400
@@ -557,6 +583,16 @@ def marka_ekle_api(proje_id):
 @login_required
 def marka_sil_api(marka_id):
     try:
+
+        conn = db._baglanti_al()
+        c = db._get_cursor(conn)
+        c.execute("SELECT proje_id FROM markalar WHERE id=?", (marka_id,))
+        row = c.fetchone()
+        conn.close()
+        if row:
+            proje = db.proje_getir(row['proje_id'] if db.db_type == "mysql" else row[0])
+            if proje and proje.get("kilitli") == 1:
+                return jsonify({"durum": "hata", "mesaj": "Proje kilitli."}), 403
         db.marka_sil(marka_id)
         return jsonify({"durum": "basarili", "mesaj": "Marka silindi."})
     except Exception as e:
@@ -571,6 +607,10 @@ def marka_sil_api(marka_id):
 @login_required
 def ifade_ekle_api(proje_id):
     try:
+
+        proje = db.proje_getir(proje_id)
+        if proje and proje.get("kilitli") == 1:
+            return jsonify({"durum": "hata", "mesaj": "Proje kilitli. İfade, marka veya seçenek eklenip silinemez."}), 403
         metin = request.form.get("metin", "").strip()
         kategori = request.form.get("kategori", "").strip()
         if not metin:
@@ -598,6 +638,16 @@ def ifade_ekle_api(proje_id):
 @login_required
 def ifade_sil_api(ifade_id):
     try:
+
+        conn = db._baglanti_al()
+        c = db._get_cursor(conn)
+        c.execute("SELECT proje_id FROM ifadeler WHERE id=?", (ifade_id,))
+        row = c.fetchone()
+        conn.close()
+        if row:
+            proje = db.proje_getir(row['proje_id'] if db.db_type == "mysql" else row[0])
+            if proje and proje.get("kilitli") == 1:
+                return jsonify({"durum": "hata", "mesaj": "Proje kilitli."}), 403
         db.ifade_sil(ifade_id)
         return jsonify({"durum": "basarili", "mesaj": "Ä°fade silindi."})
     except Exception as e:
@@ -621,6 +671,10 @@ def mcrt_secenekler_api(proje_id):
 @login_required
 def mcrt_secenek_ekle_api(proje_id):
     try:
+
+        proje = db.proje_getir(proje_id)
+        if proje and proje.get("kilitli") == 1:
+            return jsonify({"durum": "hata", "mesaj": "Proje kilitli. İfade, marka veya seçenek eklenip silinemez."}), 403
         metin = request.form.get("metin", "").strip()
         if not metin:
             return jsonify({"durum": "hata", "mesaj": "SeÃ§enek metni boÅŸ olamaz."}), 400
@@ -646,6 +700,16 @@ def mcrt_secenek_ekle_api(proje_id):
 @login_required
 def mcrt_secenek_sil_api(secenek_id):
     try:
+
+        conn = db._baglanti_al()
+        c = db._get_cursor(conn)
+        c.execute("SELECT proje_id FROM mcrt_secenekler WHERE id=?", (secenek_id,))
+        row = c.fetchone()
+        conn.close()
+        if row:
+            proje = db.proje_getir(row['proje_id'] if db.db_type == "mysql" else row[0])
+            if proje and proje.get("kilitli") == 1:
+                return jsonify({"durum": "hata", "mesaj": "Proje kilitli."}), 403
         db.mcrt_secenek_sil(secenek_id)
         return jsonify({"durum": "basarili", "mesaj": "SeÃ§enek silindi."})
     except Exception as e:

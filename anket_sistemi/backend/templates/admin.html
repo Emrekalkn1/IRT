@@ -272,11 +272,15 @@
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                         <h2 id="detayProjeAd"></h2>
-                        <div style="display:flex; gap:0.5rem;">
+                        <div style="display:flex; gap:0.5rem; align-items:center;">
+                            <button class="btn btn-outline btn-sm" id="btnProjeKilitToggle" title="Projeyi Kilitle / Aç" style="font-size:1.1rem; padding: 0.25rem 0.5rem;">🔓</button>
                             <button class="btn btn-danger btn-sm" id="btnProjeSil">🗑️ Projeyi Tamamen Sil</button>
                             <button class="btn btn-outline btn-sm" id="btnProjeYedekle">Yedek Al</button>
                             <div id="detayDurumBtnler"></div>
                         </div>
+                    </div>
+                    <div id="kilitUyari" style="display:none; padding:0.75rem 1rem; border-radius:8px; background:rgba(245,158,11,0.1); color:#d97706; border:1px solid rgba(245,158,11,0.3); margin-bottom:1rem; font-weight:600; align-items:center; gap:0.5rem;">
+                        <span>🔒 Veri toplama başladı. Araştırma bütünlüğünü korumak için yapısal değişiklikler (marka/ifade ekleme silme) kilitlenmiştir. Kilidi açmak için sağ üstteki kilit ikonuna tıklayın.</span>
                     </div>
                     <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; border-top: 1px solid var(--border); padding-top:1rem;">
                         <div class="filter-group">

@@ -1769,3 +1769,17 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
 
     adminArayuzBagla();
     projeleriYukle();
+
+
+    window.katilimciSil = async function(oturum_id) {
+        if(!confirm("Bu katılımcıyı ve tüm verilerini (cevaplar dahil) kalıcı olarak silmek istediğinize emin misiniz?")) return;
+        const res = await fetch(`/api/katilimci/${oturum_id}/sil`, {
+            method: 'DELETE',
+            headers: {'X-CSRFToken': csrfToken}
+        });
+        const data = await res.json();
+        toastGoster(data.mesaj);
+        if(data.durum === 'basarili') {
+            await projeKatilimcilariCiz(mevcutProjeId);
+        }
+    };

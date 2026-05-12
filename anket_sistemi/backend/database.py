@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Veritaban─▒ ─░┼ƒlemleri - SQLite / MySQL
 Proje bazl─▒ yeni ┼ƒema
@@ -93,9 +93,21 @@ class Veritabani:
                 panel_quotafull_url {txt_type},
                 ai_analiz {txt_type},
                 mcrt_kurgu VARCHAR(50) DEFAULT 'cift_blok',
-                mcrt_yerlesim VARCHAR(50) DEFAULT 'grid_standart'
+                mcrt_yerlesim VARCHAR(50) DEFAULT 'grid_standart',
+                kilitli INTEGER DEFAULT 0
             )
         """)
+
+        # Migration: kilitli kolonu yoksa ekle
+        try:
+            if self.db_type == "sqlite":
+                c.execute("ALTER TABLE projeler ADD COLUMN kilitli INTEGER DEFAULT 0")
+            else:
+                c.execute("ALTER TABLE projeler ADD COLUMN kilitli INT DEFAULT 0")
+            conn.commit()
+        except Exception:
+            pass
+
 
         c.execute(f"""
             CREATE TABLE IF NOT EXISTS markalar (
@@ -486,6 +498,22 @@ class Veritabani:
         conn.commit()
         conn.close()
 
+    def proje_kilit_degistir(self, proje_id):
+        conn = self._baglanti_al()
+        c = self._get_cursor(conn)
+        p = self._p()
+        c.execute(f"SELECT kilitli FROM projeler WHERE id={p}", (proje_id,))
+        row = c.fetchone()
+        if not row:
+            conn.close()
+            return None
+        mevcut_durum = row['kilitli'] if self.db_type == "mysql" else row[0]
+        yeni_durum = 0 if mevcut_durum == 1 else 1
+        c.execute(f"UPDATE projeler SET kilitli={p} WHERE id={p}", (yeni_durum, proje_id))
+        conn.commit()
+        conn.close()
+        return yeni_durum
+
     def proje_getir(self, proje_id):
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
@@ -716,6 +744,22 @@ class Veritabani:
         conn.commit()
         conn.close()
         return len(cevap_listesi)
+
+    def katilimci_sil(self, oturum_id):
+        conn = self._baglanti_al()
+        c = self._get_cursor(conn)
+        p = self._p()
+        
+        # 1. MCRT Cevapları Sil
+        c.execute(f"DELETE FROM mcrt_cevaplar WHERE oturum_id={p}", (oturum_id,))
+        # 2. IRT Cevapları Sil
+        c.execute(f"DELETE FROM cevaplar WHERE oturum_id={p}", (oturum_id,))
+        # 3. Profili Sil
+        c.execute(f"DELETE FROM katilimci_profilleri WHERE oturum_id={p}", (oturum_id,))
+        
+        conn.commit()
+        conn.close()
+        return True
 
     # ========================
     # MCRT API
