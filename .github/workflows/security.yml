@@ -75,14 +75,13 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_PASSWORD }}
           script: |
             cd /root/anket_sistemi
             git fetch origin master
             git reset --hard origin/master
             
             # .env dosyasını GitHub Secrets'tan gelen verilerle güncelle
-            # Not: Bu adım mevcut .env dosyasını GitHub'daki güvenli versiyonla değiştirir.
             cat <<EOF > .env
             ${{ secrets.ENV_CONTENT }}
             EOF
