@@ -715,7 +715,7 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
         btn.disabled = true;
         btn.textContent = 'Araştırma tasarımı kuruluyor...';
         try {
-            const res = await fetch('/api/ai_kategori_onerisi', {
+            const res = await fetch('/api/ai_kategori_onerisi?t=' + Date.now(), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                 body: JSON.stringify({ proje_ad: projeAd, markalar, hedef_kitle: hedefKitle, mevcut_ifadeler: mevcutIfadeler })
@@ -770,7 +770,7 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
         aiKategoriDurumu[kategori] = durum;
         renderAiKategoriKartlari();
         try {
-            const res = await fetch('/api/ai_kategori_ifade_onerisi', {
+            const res = await fetch('/api/ai_kategori_ifade_onerisi?t=' + Date.now(), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                 body: JSON.stringify({

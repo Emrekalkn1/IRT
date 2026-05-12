@@ -81,7 +81,7 @@ def _ifade_listesini_sikistir(items, limit):
         if not temiz:
             continue
         kelime_sayisi = _ifade_kelime_sayisi(temiz)
-        if kelime_sayisi == 0 or kelime_sayisi > 2:
+        if kelime_sayisi == 0 or kelime_sayisi > 4:
             continue
         key = temiz.lower()
         if key in gorulen:
@@ -232,7 +232,16 @@ TALIMATLAR:
             messages=[{'role': 'user', 'content': prompt}],
             temperature=0.7,
         )
-        adaylar = _csv_list(response.choices[0].message.content.strip())
+        raw_content = response.choices[0].message.content.strip()
+        
+        # Debug log to a file
+        try:
+            with open('ai_debug.log', 'a', encoding='utf-8') as f:
+                f.write(f"Kategori: {kategori} | RAW: {raw_content}\n")
+        except:
+            pass
+
+        adaylar = _csv_list(raw_content)
         temiz = []
         yasak = {str(x).strip().lower() for x in (mevcut_ifadeler + dislanan_ifadeler)}
         for oner in _ifade_listesini_sikistir(adaylar, limit * 3):
