@@ -174,7 +174,7 @@ const ALISTIRMA_SORULARI_GORSEL_V2 = [
     { id: 'na13', ad: 'İhanet', ifade: 'İyi mi?', img: 'ihanet.png', cevap: 'Hayır' },
     { id: 'na14', ad: 'Çöp', ifade: 'Kirli mi?', img: 'cop.png', cevap: 'Evet' },
     { id: 'na15', ad: 'Mikrop', ifade: 'Yararlı?', img: 'mikrop.png', cevap: 'Hayır' },
-    { id: 'na16', ad: 'Yangin', ifade: 'Korkutucu?', img: 'yangin.png', cevap: 'Evet' },
+    { id: 'na16', ad: 'Yangın', ifade: 'Korkutucu?', img: 'yangin.png', cevap: 'Evet' },
     { id: 'na17', ad: 'Yara', ifade: 'Güzel mi?', img: 'yara.png', cevap: 'Hayır' },
     { id: 'na18', ad: 'Yılan', ifade: 'Tehlikeli?', img: 'yilan.png', cevap: 'Evet' },
     { id: 'na19', ad: 'Akrep', ifade: 'Evcil mi?', img: 'akrep.png', cevap: 'Hayır' },
