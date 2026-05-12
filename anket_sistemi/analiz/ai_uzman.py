@@ -214,23 +214,20 @@ def ai_kategoriye_gore_ifade_onerisi(
         return temiz[:limit]
 
     try:
-        prompt = f"""Sen bir noropazarlama uzmanisin. Bilincalti algiyi olcmek icin KISA SIFATLAR veya KAVRAMLAR kullaniyoruz.
-VERILER:
-- Proje: <data>{proje_ad}</data>
-- Kategori: <data>{kategori}</data>
+        prompt = f"""Sen bir kelime ureticisisin. Sadece kisa etiketler uretirsin.
+Kategori: {kategori}
+Proje: {proje_ad}
 
-GOREVIN: Bu kategori ile alakali {limit} adet YENI ifade onermek.
-KESIN KURALLAR:
-1. ASLA cumle kurma. ASLA soru sorma.
-2. Her bir ifade SADECE 1 veya 2 KELIMEDEN olusmalidir. 
-   (Dogru Ornekler: Guvenilir, Hizli Sarj, Pahali, Çevreci, Sik)
-   (Yanlis Ornekler: Sarj suresi beklentimi karsiliyor, Cevreye duyarlilik cok onemli)
-3. Ciktin yalnizca virgulle ayrilmis kelimelerden olusmalidir. Baska hicbir sey yazma.
+GOREV: Kategoriyle ilgili anketlerde kullanilacak {limit} adet kisa etiket uret.
+KURAL 1: Her etiket MAKSIMUM 2 KELIME olmalidir. 3 kelime veya daha uzun ifadeler KESINLIKLE YASAKTIR.
+KURAL 2: Sadece etiketleri virgulle ayirarak yaz. Aciklama, numara veya tirnak isareti kullanma.
+ORNEK CIKTI:
+Guvenilir, Hizli Sarj, Sik Tasarim, Pahali, Çevreci
 """
         response = client.chat.completions.create(
             model=os.getenv('AI_MODEL', 'deepseek-chat'),
             messages=[{'role': 'user', 'content': prompt}],
-            temperature=0.7,
+            temperature=0.2,
         )
         raw_content = response.choices[0].message.content.strip()
         
