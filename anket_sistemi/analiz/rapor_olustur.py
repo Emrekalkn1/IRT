@@ -1384,10 +1384,10 @@ def _create_mcrt_heatmap_pages(df, meta, prefix, rows_per_page=24):
 
 def _plot_metric_table_v2(df, meta, path, title):
     if _analysis_mode(meta) == "mcrt":
-        preferred_cols = ["Blok", "Marka", "Ä°fade", "Secilme_Orani", "MCRT_Skor", "Ortalama_Hiz", "Toplam_Secilme"]
+        preferred_cols = ["Blok", "Marka", "İfade", "Secilme_Orani", "MCRT_Skor", "Ortalama_Hiz", "Toplam_Secilme"]
         row_limit = 18
     else:
-        preferred_cols = ["Marka", "Ä°fade", "Explicit(%)", "Implicit_Guc", "Implicit_Skor"]
+        preferred_cols = ["Marka", "İfade", "Explicit(%)", "Implicit_Guc", "Implicit_Skor"]
         row_limit = 16
 
     show_cols = [c for c in preferred_cols if c in df.columns]

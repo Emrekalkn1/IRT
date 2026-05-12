@@ -68,7 +68,7 @@
                 <div class="filter-bar">
                     <div class="filter-group"><label>Cinsiyet</label><select id="fCinsiyet" class="form-select"><option value="">Tümü</option><option value="Kadın">Kadın</option><option value="Erkek">Erkek</option></select></div>
                     <div class="filter-group"><label>SES Grubu</label><select id="fSes" class="form-select"><option value="">Tümü</option><option value="A">A SES</option><option value="B">B SES</option><option value="C1">C1 SES</option><option value="C2">C2 SES</option><option value="D">D SES</option><option value="E">E SES</option></select></div>
-                    <div class="filter-group"><label>Yaş</label><div style="display:flex; gap:0.25rem;"><input type="number" id="fYasMin" class="form-input" placeholder="Min" style="width:65px;"><input type="number" id="fYasMax" class="form-input" placeholder="Max" style="width:65px;"></div></div>
+                    <div class="filter-group"><label>Yaş</label><div style="display:flex; gap:0.25rem;"><input type="number" id="fYasMin" class="form-input" placeholder="Min" style="width:80px;"><input type="number" id="fYasMax" class="form-input" placeholder="Max" style="width:80px;"></div></div>
                     <button class="btn btn-outline btn-sm" id="btnFiltreTemizle">Temizle</button>
                 </div>
 
@@ -274,6 +274,7 @@
                         <h2 id="detayProjeAd"></h2>
                         <div style="display:flex; gap:0.5rem; align-items:center;">
                             <button class="btn btn-outline btn-sm" id="btnProjeKilitToggle" title="Projeyi Kilitle / Aç" style="font-size:1.1rem; padding: 0.25rem 0.5rem;">🔓</button>
+                            <button class="btn btn-outline btn-sm" id="btnProjeKlonla" title="Projeyi Klonla">Klonla</button>
                             <button class="btn btn-danger btn-sm" id="btnProjeSil">🗑️ Projeyi Tamamen Sil</button>
                             <button class="btn btn-outline btn-sm" id="btnProjeYedekle">Yedek Al</button>
                             <div id="detayDurumBtnler"></div>
@@ -458,7 +459,7 @@
 
             <!-- LINKLER TAB -->
             <div class="tab-content" id="tabLinkler">
-                <div class="card"><div class="card-title">🔗 Katılımcı Linkleri</div><div style="display:flex; gap:1rem;"><input type="number" id="inputLinkAdet" class="form-input" value="50" style="width:100px;"><button class="btn btn-primary" id="btnLinkOlustur">Üret</button></div></div>
+                <div class="card"><div class="card-title">🔗 Katılımcı Linkleri</div><div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;"><input type="number" id="inputLinkAdet" class="form-input" value="50" style="width:100px;"><button class="btn btn-primary" id="btnLinkOlustur">Üret</button><button class="btn btn-outline" id="btnLinkKopyala">Tümünü Kopyala</button><button class="btn btn-outline" id="btnLinkIndir">CSV İndir</button></div></div>
                 <div class="card"><div class="card-title">Hizli Kontrol Listesi</div><div style="font-size:0.9rem; color:var(--text-med); line-height:1.6;">1. Yeni bir link ac ve testin bastan geldigini kontrol et.<br>2. Linki bir kez kullanip tekrar acilamadigini kontrol et.<br>3. Adminden <strong>Yeniden Ac</strong> yapip ayni linkin tekrar bastan actigini kontrol et.<br>4. Katilimcilar ekraninda <strong>Bitti / Yar?m / Ge?ersiz</strong> durumlarinin dogru aktigini kontrol et.<br>5. Proje kartinda <strong>Biten / Yar?m / Outlier / Gercek soruya gecmeden ayrilan</strong> sayilarini kontrol et.</div></div>
                 <div class="card"><div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>Token</th><th>Link</th><th>Durum</th></tr></thead><tbody id="linkListesiBody"></tbody></table></div></div>
             </div>

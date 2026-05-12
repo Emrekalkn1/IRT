@@ -144,13 +144,21 @@ class Veritabani:
                 metin {txt_type} NOT NULL,
                 kategori VARCHAR(100) DEFAULT '',
                 resim_dosya VARCHAR(255),
-                sira INTEGER DEFAULT 0
+                sira INTEGER DEFAULT 0,
+                beklenen_cevap VARCHAR(10) DEFAULT 'Evet'
             )
         """)
 
         # Migration: kategori kolonu yoksa ekle
         try:
             c.execute("ALTER TABLE ifadeler ADD COLUMN kategori VARCHAR(100) DEFAULT ''")
+            conn.commit()
+        except Exception:
+            pass
+
+        # Migration: beklenen_cevap kolonu yoksa ekle
+        try:
+            c.execute("ALTER TABLE ifadeler ADD COLUMN beklenen_cevap VARCHAR(10) DEFAULT 'Evet'")
             conn.commit()
         except Exception:
             pass
@@ -355,10 +363,16 @@ class Veritabani:
         tarih = datetime.now().isoformat()
         p = self._p()
         try:
-            c.execute(
-                f"INSERT INTO kullanicilar (username, password_hash, ad_soyad, rol, olusturma_tarihi) VALUES ({p},{p},{p},{p},{p})",
-                (username, password_hash, ad_soyad, rol, tarih)
-            )
+            if self.db_type == "mysql":
+                c.execute(
+                    f"INSERT IGNORE INTO kullanicilar (username, password_hash, ad_soyad, rol, olusturma_tarihi) VALUES ({p},{p},{p},{p},{p})",
+                    (username, password_hash, ad_soyad, rol, tarih)
+                )
+            else:
+                c.execute(
+                    f"INSERT OR IGNORE INTO kullanicilar (username, password_hash, ad_soyad, rol, olusturma_tarihi) VALUES ({p},{p},{p},{p},{p})",
+                    (username, password_hash, ad_soyad, rol, tarih)
+                )
             conn.commit()
             return True
         except Exception:
@@ -535,11 +549,11 @@ class Veritabani:
     def tum_projeler(self, include_archived=True):
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
+        p = self._p()
         if include_archived:
-            c.execute("SELECT * FROM projeler ORDER BY olusturma_tarihi DESC")
+            c.execute(f"SELECT * FROM projeler WHERE durum != {p} ORDER BY olusturma_tarihi DESC", ("silinmis",))
         else:
-            p = self._p()
-            c.execute(f"SELECT * FROM projeler WHERE durum != {p} ORDER BY olusturma_tarihi DESC", ("arsiv",))
+            c.execute(f"SELECT * FROM projeler WHERE durum NOT IN ({p}, {p}) ORDER BY olusturma_tarihi DESC", ("arsiv", "silinmis"))
         rows = c.fetchall()
         conn.close()
         return [dict(r) for r in rows]
@@ -548,7 +562,7 @@ class Veritabani:
         conn = self._baglanti_al()
         c = self._get_cursor(conn)
         p = self._p()
-        c.execute(f"DELETE FROM projeler WHERE id={p}", (proje_id,))
+        c.execute(f"UPDATE projeler SET durum='silinmis' WHERE id={p}", (proje_id,))
         conn.commit()
         conn.close()
 

@@ -3,7 +3,7 @@
   <desc id="desc">Animated Sayiyoo wordmark with a yellow bouncing dot and eyeglass-shaped oo.</desc>
   <style>
     .wordmark {
-      fill: #F3EEE5;
+      fill: #000000;
       font-family: "Arial Black", Inter, Arial, sans-serif;
       font-size: 100px;
       font-weight: 900;
@@ -20,7 +20,7 @@
     }
 
     .glasses {
-      stroke: #F3EEE5;
+      stroke: #000000;
       stroke-width: 9;
       fill: none;
       stroke-linecap: round;

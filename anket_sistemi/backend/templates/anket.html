@@ -62,7 +62,7 @@
             <div class="shape shape-3"></div>
         </div>
         <div class="karsilama-icerik">
-            <div class="karsilama-badge">📊 Bilimsel Araştırma Platformu</div>
+            <div class="karsilama-badge"><img src="{{ url_for('static', filename='images/sayiyoo-logo-v2.svg') }}" alt="Araştırma Platformu Logo" style="height: 24px; vertical-align: middle;"></div>
 
             {% if proje.katilimci_bilgilendirme %}
             <div class="bilgilendirme-kutu">
@@ -220,10 +220,10 @@
                 <div class="soru-ifade-altcizgi"></div>
             </div>
             <div class="soru-butonlar">
-                <button class="btn-cevap btn-cevap-evet" id="btnEvet">
+                <button class="btn-cevap btn-cevap-evet" id="btnEvet" onfocus="this.blur()">
                     <span>EVET</span>
                 </button>
-                <button class="btn-cevap btn-cevap-hayir" id="btnHayir">
+                <button class="btn-cevap btn-cevap-hayir" id="btnHayir" onfocus="this.blur()">
                     <span>HAYIR</span>
                 </button>
             </div>
@@ -267,10 +267,7 @@
     <!-- EKRAN 4: TESEKKUR -->
     <div class="screen screen-tesekkur" id="screenTesekkur">
         <div class="tesekkur-kart">
-            <div class="tesekkur-ikon-wrapper">
-                <svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            </div>
-            <h2>Tesekkur Ederiz! 🎉</h2>
+            <h2>Tesekkur Ederiz!</h2>
             <p>Cevaplariniz basariyla kaydedildi. Arastirmaya olan katkiniz bizim icin cok degerli.</p>
             <div id="konfeti" class="konfeti-container"></div>
         </div>

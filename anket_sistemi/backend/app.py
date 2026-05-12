@@ -62,8 +62,16 @@ limiter = Limiter(
 )
 
 import logging
-logging.basicConfig(filename='/root/anket_sistemi/auth_debug.log', level=logging.INFO, format='%(asctime)s %(message)s')
+import logging.handlers
 
+log_dir = os.path.join(os.path.dirname(__file__), '..', 'logs')
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, 'app.log')
+logging.basicConfig(
+    handlers=[logging.handlers.RotatingFileHandler(log_file, maxBytes=1000000, backupCount=5)],
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s'
+)
 db = Veritabani()
 
 
@@ -190,6 +198,8 @@ def yedek_dosyasini_oku(yuklu_dosya):
                 if not eski_ad:
                     continue
                 hedef_ad = secure_filename(eski_ad) or f"yedek_{uuid.uuid4().hex[:8]}"
+                if not allowed_file(hedef_ad):
+                    continue
                 kok, ext = os.path.splitext(hedef_ad)
                 sayac = 1
                 hedef_yol = os.path.join(UPLOAD_FOLDER, hedef_ad)
@@ -341,7 +351,7 @@ def proje_olustur():
         bilgilendirme = veri.get("bilgilendirme", "").strip()
 
         if not ad:
-            return jsonify({"durum": "hata", "mesaj": "Proje adÄ± boÅŸ olamaz."}), 400
+            return jsonify({"durum": "hata", "mesaj": "Proje adı boş olamaz."}), 400
 
         proje_id, kod = db.proje_olustur(ad, aciklama, bilgilendirme)
         return jsonify({
@@ -478,6 +488,29 @@ def proje_yedekle_api(proje_id):
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
 
 
+@app.route("/api/proje/<int:proje_id>/klonla", methods=["POST"])
+@login_required
+def proje_klonla_api(proje_id):
+    try:
+        proje = db.proje_getir(proje_id)
+        if not proje:
+            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadi."}), 404
+            
+        yedek_verisi = db.proje_yedek_verisi(proje_id)
+        yedek_verisi["proje"]["ad"] = proje["ad"] + " (Klon)"
+        # Klonlama isleminde veritabani baglantilari kopyalanacak. 
+        # Uploads icindeki dosya isimleri ayni kalacak (dosya_haritasi bossa kendi adini kullanir)
+        sonuc = db.proje_yedekten_yukle(yedek_verisi, {})
+        return jsonify({
+            "durum": "basarili",
+            "mesaj": f"Proje klonlandi: '{sonuc['ad']}'.",
+            "proje_id": sonuc["proje_id"],
+            "kod": sonuc["kod"]
+        })
+    except Exception as e:
+        return jsonify({"durum": "hata", "mesaj": str(e)}), 500
+
+
 @app.route("/api/proje/yedek_yukle", methods=["POST"])
 @login_required
 def proje_yedek_yukle_api():
@@ -557,7 +590,7 @@ def marka_ekle_api(proje_id):
             return jsonify({"durum": "hata", "mesaj": "Proje kilitli. İfade, marka veya seçenek eklenip silinemez."}), 403
         ad = request.form.get("ad", "").strip()
         if not ad:
-            return jsonify({"durum": "hata", "mesaj": "Marka adÄ± boÅŸ olamaz."}), 400
+            return jsonify({"durum": "hata", "mesaj": "Marka adı boş olamaz."}), 400
 
         resim_dosya = ""
         if 'resim' in request.files:
@@ -614,7 +647,7 @@ def ifade_ekle_api(proje_id):
         metin = request.form.get("metin", "").strip()
         kategori = request.form.get("kategori", "").strip()
         if not metin:
-            return jsonify({"durum": "hata", "mesaj": "Ä°fade metni boÅŸ olamaz."}), 400
+            return jsonify({"durum": "hata", "mesaj": "İfade metni boş olamaz."}), 400
 
         resim_dosya = ""
         if 'resim' in request.files:
@@ -628,7 +661,7 @@ def ifade_ekle_api(proje_id):
         return jsonify({
             "durum": "basarili",
             "ifade_id": ifade_id,
-            "mesaj": f"Ä°fade '{metin}' eklendi."
+            "mesaj": f"İfade '{metin}' eklendi."
         })
     except Exception as e:
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
@@ -649,7 +682,7 @@ def ifade_sil_api(ifade_id):
             if proje and proje.get("kilitli") == 1:
                 return jsonify({"durum": "hata", "mesaj": "Proje kilitli."}), 403
         db.ifade_sil(ifade_id)
-        return jsonify({"durum": "basarili", "mesaj": "Ä°fade silindi."})
+        return jsonify({"durum": "basarili", "mesaj": "İfade silindi."})
     except Exception as e:
         return jsonify({"durum": "hata", "mesaj": str(e)}), 500
 
@@ -721,6 +754,7 @@ def mcrt_secenek_sil_api(secenek_id):
 # ========================
 
 @app.route("/api/oturum_baslat", methods=["POST"])
+@limiter.limit("20 per minute")
 def oturum_baslat_api():
     try:
         veri = request.get_json()
@@ -749,11 +783,12 @@ def oturum_baslat_api():
 
 
 @app.route("/api/cevap_kaydet", methods=["POST"])
+@limiter.limit("500 per minute")
 def cevap_kaydet():
     try:
         veri = request.get_json()
         if not veri:
-            return jsonify({"durum": "hata", "mesaj": "Veri bulunamadÄ±."}), 400
+            return jsonify({"durum": "hata", "mesaj": "Veri bulunamadı."}), 400
 
         proje_id = veri.get("proje_id")
         cevaplar = veri.get("cevaplar", [])
@@ -888,7 +923,7 @@ def explicit_ozet(proje_id):
         
         proje = db.proje_getir(proje_id)
         if not proje:
-            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadÄ±."}), 404
+            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadı."}), 404
 
         test_turu = (proje.get('test_turu') or 'standart').lower()
         is_mcrt = test_turu in ['mcrt', 'mrt']
@@ -941,7 +976,7 @@ def proje_analiz_istatistik_api(proje_id):
     try:
         proje = db.proje_getir(proje_id)
         if not proje:
-            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadÄ±."}), 404
+            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadı."}), 404
 
         test_turu = (proje.get('test_turu') or 'standart').lower()
         is_mcrt = test_turu in ['mcrt', 'mrt']
@@ -1059,7 +1094,7 @@ def analiz_rapor(proje_id):
             analiz_paketi = mcrt_proje_analizi(db, proje_id)
             sonuc = pd.DataFrame(analiz_paketi.get("ozet") or [])
             if sonuc.empty:
-                return jsonify({"durum": "hata", "mesaj": "Henuz analiz edilecek veri yok."}), 400
+                return jsonify({"durum": "uyari", "mesaj": "Henüz analiz edilecek veri yok."})
 
             sonuc = sonuc.copy()
             if "implicit_guc" not in sonuc.columns:
@@ -1078,7 +1113,7 @@ def analiz_rapor(proje_id):
 
             rapor_icin_df = sonuc.copy().rename(columns={
                 "marka": "Marka",
-                "ifade": "Ä°fade",
+                "ifade": "İfade",
                 "explicit_pct": "Explicit(%)",
                 "implicit_guc": "Implicit_Guc"
             })
@@ -1093,14 +1128,14 @@ def analiz_rapor(proje_id):
         else:
             df = db.proje_verileri_df(proje_id)
             if df.empty:
-                return jsonify({"durum": "hata", "mesaj": "Henuz analiz edilecek veri yok."}), 400
+                return jsonify({"durum": "uyari", "mesaj": "Henüz analiz edilecek veri yok."})
 
             sonuc, kalite_raporu = explicit_implicit_analiz(df)
             kor_sonuc = korelasyon_hesapla(sonuc)
             istatistik = marka_karsilastirma_testi(df)
             rapor_icin_df = sonuc.copy().rename(columns={
                 "marka": "Marka",
-                "ifade": "Ä°fade",
+                "ifade": "İfade",
                 "explicit_pct": "Explicit(%)",
                 "implicit_guc": "Implicit_Guc"
             })
@@ -1158,12 +1193,12 @@ def ai_rapor(proje_id):
     try:
         proje = db.proje_getir(proje_id)
         if not proje:
-            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadÄ±."}), 404
+            return jsonify({"durum": "hata", "mesaj": "Proje bulunamadı."}), 404
         
         is_mcrt = proje.get('test_turu') in ['mcrt', 'mrt']
         proje_ad = proje.get("ad", "")
 
-        # MCRT Analiz DallanmasÄ±
+        # MCRT Analiz Dallanması
         if is_mcrt:
             from analiz.ai_uzman import mcrt_deepseek_rapor_olustur, mcrt_deepseek_slide_pack_olustur, mcrt_slide_pack_html
             from analiz.mcrt_analysis_service import mcrt_proje_analizi
@@ -1171,7 +1206,7 @@ def ai_rapor(proje_id):
             analiz_paketi = mcrt_proje_analizi(db, proje_id)
             ozet = pd.DataFrame(analiz_paketi.get("ozet") or [])
             if ozet.empty:
-                return jsonify({"durum": "hata", "mesaj": "HenÃ¼z analiz edilecek veri yok."}), 400
+                return jsonify({"durum": "uyari", "mesaj": "Henüz analiz edilecek veri yok."})
             
             slide_pack = mcrt_deepseek_slide_pack_olustur(
                 ozet,
@@ -1199,7 +1234,7 @@ def ai_rapor(proje_id):
                 "kaynak": "yeni"
             })
         
-        # Standart IRT Analizi (AÅŸaÄŸÄ±daki eski mantÄ±k devam eder)
+        # Standart IRT Analizi (Aşağıdaki eski mantık devam eder)
         mevcut_analiz = db.ai_analiz_getir(proje_id)
         if mevcut_analiz:
             return jsonify({"durum": "basarili", "html": mevcut_analiz, "kaynak": "hafiza"})
@@ -1209,7 +1244,7 @@ def ai_rapor(proje_id):
 
         df = db.proje_verileri_df(proje_id)
         if df.empty:
-            return jsonify({"durum": "hata", "mesaj": "Henuz analiz edilecek veri yok."}), 400
+            return jsonify({"durum": "uyari", "mesaj": "Henüz analiz edilecek veri yok."})
 
         sonuc, kalite_raporu = explicit_implicit_analiz(df)
         marka_df = marka_modern_geleneksel(sonuc)

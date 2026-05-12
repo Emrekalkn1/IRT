@@ -59,6 +59,7 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
         clickBagla('btnAiRapor', aiRaporUret);
         clickBagla('btnAiRaporOlustur', aiRaporluPaketOlustur);
         clickBagla('btnProjeSil', projeSil);
+        clickBagla('btnProjeKlonla', projeKlonla);
         clickBagla('btnProjeYedekle', projeYedekle);
         clickBagla('btnMarkaEkle', markaEkle);
         clickBagla('btnAiKategori', aiKategoriOnerisiAl);
@@ -67,6 +68,8 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
             clickBagla('btnMcrtSecenekEkle', mcrtSecenekEkle);
         }
         clickBagla('btnLinkOlustur', linkOlustur);
+        clickBagla('btnLinkKopyala', linkleriKopyala);
+        clickBagla('btnLinkIndir', linkleriIndir);
         clickBagla('btnRaporOlustur', raporOlustur);
 
         changeBagla('checkShowArchived', projeleriYukle);
@@ -460,6 +463,28 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
             const res2 = await fetch(`/api/proje/${mevcutProjeId}`);
             const data2 = await res2.json();
             document.getElementById('editProjeDurum').value = data2.proje.durum;
+        }
+    }
+
+    async function projeKlonla() {
+        if(!mevcutProjeId) return;
+        if(!confirm(`'${document.getElementById('detayProjeAd').textContent}' projesini klonlamak istiyor musunuz?`)) return;
+        toastGoster('Proje klonlanıyor, lütfen bekleyin...');
+        try {
+            const res = await fetch(`/api/proje/${mevcutProjeId}/klonla`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken }
+            });
+            const data = await res.json();
+            if(data.durum === 'basarili') {
+                toastGoster(data.mesaj);
+                await projeleriYukle();
+                await projeDetayAc(data.proje_id);
+            } else {
+                toastGoster("Hata: " + data.mesaj);
+            }
+        } catch (err) {
+            toastGoster("Hata: " + err.message);
         }
     }
 
@@ -1608,6 +1633,36 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
         }
     }
 
+    function linkleriKopyala() {
+        const baseUrl = window.location.origin + `/anket/${mevcutProjeKod}/`;
+        const links = Array.from(document.querySelectorAll('#linkListesiBody code')).map(code => baseUrl + code.textContent);
+        if(links.length === 0) return toastGoster("Kopyalanacak link yok.");
+        navigator.clipboard.writeText(links.join('\n')).then(() => {
+            toastGoster(`${links.length} adet link panoya kopyalandı.`);
+        }).catch(err => {
+            toastGoster("Kopyalama basarisiz: " + err);
+        });
+    }
+
+    function linkleriIndir() {
+        const baseUrl = window.location.origin + `/anket/${mevcutProjeKod}/`;
+        const tokens = Array.from(document.querySelectorAll('#linkListesiBody code')).map(code => code.textContent);
+        if(tokens.length === 0) return toastGoster("İndirilecek link yok.");
+        
+        let csvContent = "data:text/csv;charset=utf-8,Token,Link\n";
+        tokens.forEach(token => {
+            csvContent += `${token},${baseUrl}${token}\n`;
+        });
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `katilimci_linkleri_${mevcutProjeKod}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     async function raporOlustur(includeAi = false) {
         if(!mevcutProjeId) return;
         const btn = document.getElementById(includeAi ? 'btnAiRaporOlustur' : 'btnRaporOlustur');
@@ -1639,6 +1694,10 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
                         throw new Error(`AI servisi beklenen JSON yerine farkli bir yanit dondurdu (${aiRes.status}). ${text.slice(0, 160)}`);
                     }
                     const aiData = await aiRes.json();
+                    if (aiData.durum === 'uyari') {
+                        toastGoster("Bilgi: " + aiData.mesaj);
+                        return;
+                    }
                     if (!aiRes.ok) {
                         throw new Error(aiData?.mesaj || `AI servisi hatasi: ${aiRes.status}`);
                     }
@@ -1669,6 +1728,10 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
                 throw new Error(`Sunucu JSON yerine farkli bir yanit dondurdu (${res.status}). ${text.slice(0, 160)}`);
             }
             const data = await res.json();
+            if (data.durum === 'uyari') {
+                toastGoster("Bilgi: " + data.mesaj);
+                return;
+            }
             if (!res.ok) {
                 throw new Error(data?.mesaj || `Sunucu hatasi: ${res.status}`);
             }
