@@ -731,10 +731,13 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
             document.getElementById('aiOneriKutusu').style.display = 'block';
             document.getElementById('aiKategoriIfadeKutusu').style.display = 'block';
             aiKategoriDurumu = {};
-            for (const kategori of kategoriler) {
-                aiKategoriDurumu[kategori] = { oneriler: [], redler: [] };
-                await aiKategoriIfadeleriAl(kategori, true);
-            }
+            kategoriler.forEach(k => {
+                aiKategoriDurumu[k] = { oneriler: [], redler: [], loading: true };
+            });
+            renderAiKategoriKartlari();
+            
+            // Tüm kategorileri paralel olarak başlat
+            kategoriler.forEach(k => aiKategoriIfadeleriAl(k, true));
             toastGoster('Hipotez bazlı kategori seti hazır.');
         } catch (e) {
             toastGoster('AI kategori akisi baslatilamadi.');
@@ -759,10 +762,11 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
         const hedefKitle = document.getElementById('aiHedeKitle').value.trim();
         const markalar = aiMarkaListesiGetir();
         const mevcutIfadeler = aktifIfadeListesiGetir();
-        const durum = aiKategoriDurumu[kategori] || { oneriler: [], redler: [] };
+        const durum = aiKategoriDurumu[kategori] || { oneriler: [], redler: [], loading: true };
         if (tazele) {
             durum.redler = [...durum.redler, ...(durum.oneriler || [])];
         }
+        durum.loading = true;
         aiKategoriDurumu[kategori] = durum;
         renderAiKategoriKartlari();
         try {
@@ -781,10 +785,13 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
             const data = await res.json();
             aiKategoriDurumu[kategori] = {
                 oneriler: (data.oneriler || []).slice(0, 4),
-                redler: durum.redler || []
+                redler: durum.redler || [],
+                loading: false
             };
             renderAiKategoriKartlari();
         } catch (e) {
+            if (aiKategoriDurumu[kategori]) aiKategoriDurumu[kategori].loading = false;
+            renderAiKategoriKartlari();
             toastGoster(`${kategori} icin AI onerisi alinamadi.`);
         }
     }
@@ -808,7 +815,9 @@ let mevcutProjeId = null, mevcutProjeKod = null, mevcutProjeAd = '', mevcutProje
                         <button data-action="kategori-hizli-ekle" data-kategori="${escapeHTML(kategori)}" data-metin="${escapeHTML(o)}" style="background:none; border:none; color:var(--success); font-weight:700; cursor:pointer; padding:0 2px;">+</button>
                     </div>
                 `).join('')
-                : '<div style="font-size:0.8rem; color:var(--text-dim);">Oneri hazirlaniyor...</div>';
+                : (bilgi.loading 
+                    ? '<div style="font-size:0.8rem; color:var(--text-dim); display:flex; align-items:center; gap:5px;"><span class="spinner-sm"></span> Oneri hazirlaniyor...</div>'
+                    : '<div style="font-size:0.8rem; color:var(--danger);">Oneri alinamadi.</div>');
             return `
                 <div style="border:1px solid var(--border); border-radius:12px; padding:0.85rem; background:rgba(255,255,255,0.02);">
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-bottom:0.65rem; flex-wrap:wrap;">
